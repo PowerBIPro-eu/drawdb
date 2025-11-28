@@ -361,6 +361,18 @@ export default function Table({
                           {t("autoincrement")}
                         </Tag>
                       )}
+                      {(e.type === "ENUM" || e.type === "SET") &&
+                        e.values &&
+                        e.values.length > 0 && (
+                          <div className="my-2">
+                            <strong>{t("values")}: </strong>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {e.values.map((val, k) => (
+                                <Tag key={k}>{val}</Tag>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       <p>
                         <strong>{t("default_value")}: </strong>
                         {e.default === "" ? t("not_set") : e.default}
