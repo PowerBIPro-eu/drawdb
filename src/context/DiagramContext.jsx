@@ -21,6 +21,7 @@ export default function DiagramContextProvider({ children }) {
     const newTable = {
       id,
       name: `table_${id}`,
+      displayName: "",
       x: transform.pan.x,
       y: transform.pan.y,
       width: tableWidth,

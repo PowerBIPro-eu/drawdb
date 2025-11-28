@@ -17,7 +17,12 @@ export function fromDBML(src) {
       let parsedTable = {};
       parsedTable.id = nanoid();
       parsedTable.name = table.name;
-      parsedTable.comment = table.note ?? "";
+      
+      const note = table.note ?? "";
+      const labelMatch = note.match(/label:\s*(.*?)(?:$|\n)/);
+      parsedTable.displayName = labelMatch ? labelMatch[1].trim() : "";
+      parsedTable.comment = note.replace(/label:\s*.*?(?:$|\n)/, "").trim();
+
       parsedTable.color = table.headerColor ?? "#175e7a";
       parsedTable.fields = [];
       parsedTable.indices = [];

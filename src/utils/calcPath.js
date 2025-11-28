@@ -1,4 +1,4 @@
-import { tableFieldHeight, tableHeaderHeight } from "../data/constants";
+import { tableFieldHeight, tableHeaderHeight, tableColorStripHeight } from "../data/constants";
 
 /**
  * Generates an SVG path string to visually represent a relationship between two fields.
@@ -13,7 +13,7 @@ import { tableFieldHeight, tableHeaderHeight } from "../data/constants";
  * @param {number} zoom - Zoom level (used to scale vertical spacing).
  * @returns {string} SVG path "d" attribute string.
  */
-export function calcPath(r, tableWidth = 200, zoom = 1, rowHeight = tableFieldHeight) {
+export function calcPath(r, tableWidth = 200, zoom = 1, rowHeight = tableFieldHeight, headerHeight = tableHeaderHeight) {
   if (!r) {
     return "";
   }
@@ -23,13 +23,15 @@ export function calcPath(r, tableWidth = 200, zoom = 1, rowHeight = tableFieldHe
   let y1 =
     r.startTable.y +
     r.startFieldIndex * rowHeight +
-    tableHeaderHeight +
+    headerHeight +
+    tableColorStripHeight + 2 +
     rowHeight / 2;
   let x2 = r.endTable.x;
   let y2 =
     r.endTable.y +
     r.endFieldIndex * rowHeight +
-    tableHeaderHeight +
+    headerHeight +
+    tableColorStripHeight + 2 +
     rowHeight / 2;
 
   let radius = 10 * zoom;

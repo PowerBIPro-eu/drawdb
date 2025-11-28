@@ -5,6 +5,7 @@ import {
   tableFieldHeight,
   tableFieldHeightDetailed,
   tableHeaderHeight,
+  tableHeaderHeightDetailed,
   tableColorStripHeight,
 } from "../../data/constants";
 import {
@@ -59,8 +60,11 @@ export default function Table({
   const rowHeight = settings.showDetailedView
     ? tableFieldHeightDetailed
     : tableFieldHeight;
+  const headerHeight = settings.showDetailedView
+    ? tableHeaderHeightDetailed
+    : tableHeaderHeight;
 
-  const height = getTableHeight(tableData, rowHeight);
+  const height = getTableHeight(tableData, rowHeight, headerHeight);
 
   const isSelected = useMemo(() => {
     return (
@@ -174,12 +178,26 @@ export default function Table({
               style={{ backgroundColor: tableData.color }}
             />
             <div
-              className={`overflow-hidden font-bold h-[40px] flex justify-between items-center border-b border-gray-400 ${
+              className={`overflow-hidden font-bold flex justify-between items-center border-b border-gray-400 ${
                 settings.mode === "light" ? "bg-zinc-200" : "bg-zinc-900"
               }`}
+              style={{ height: `${headerHeight}px` }}
             >
-              <div className="px-3 overflow-hidden text-ellipsis whitespace-nowrap">
-                {tableData.name}
+              <div className="px-3 overflow-hidden text-ellipsis whitespace-nowrap flex flex-col">
+                {settings.showDetailedView && tableData.displayName ? (
+                  <>
+                    <span className="overflow-hidden text-ellipsis whitespace-nowrap">
+                      {tableData.displayName}
+                    </span>
+                    <span className="text-xs text-gray-500 overflow-hidden text-ellipsis whitespace-nowrap font-normal">
+                      {tableData.name}
+                    </span>
+                  </>
+                ) : (
+                  <span className="overflow-hidden text-ellipsis whitespace-nowrap">
+                    {tableData.name}
+                  </span>
+                )}
               </div>
               <div className="hidden group-hover:block">
                 <div className="flex justify-end items-center mx-2 space-x-1.5">
@@ -439,15 +457,15 @@ export default function Table({
                 startY:
                   tableData.y +
                   index * rowHeight +
-                  tableHeaderHeight +
-                  tableColorStripHeight +
+                  headerHeight +
+                  tableColorStripHeight + 2 +
                   rowHeight / 2,
                 endX: tableData.x + 15,
                 endY:
                   tableData.y +
                   index * rowHeight +
-                  tableHeaderHeight +
-                  tableColorStripHeight +
+                  headerHeight +
+                  tableColorStripHeight + 2 +
                   rowHeight / 2,
               }));
             }}

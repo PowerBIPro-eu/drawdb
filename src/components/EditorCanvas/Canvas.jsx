@@ -10,6 +10,8 @@ import {
   minAreaSize,
   tableFieldHeight,
   tableFieldHeightDetailed,
+  tableHeaderHeight,
+  tableHeaderHeightDetailed,
 } from "../../data/constants";
 import { Toast } from "@douyinfe/semi-ui";
 import Table from "./Table";
@@ -58,6 +60,9 @@ export default function Canvas() {
   const rowHeight = settings.showDetailedView
     ? tableFieldHeightDetailed
     : tableFieldHeight;
+  const headerHeight = settings.showDetailedView
+    ? tableHeaderHeightDetailed
+    : tableHeaderHeight;
 
   const {
     selectedElement,
@@ -146,7 +151,7 @@ export default function Canvas() {
         x: table.x,
         y: table.y,
         width: table.width ?? settings.tableWidth,
-        height: getTableHeight(table, rowHeight),
+        height: getTableHeight(table, rowHeight, headerHeight),
       };
       if (shouldAddElement(tableRect, element)) {
         elements.push(element);

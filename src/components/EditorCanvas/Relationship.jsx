@@ -5,6 +5,8 @@ import {
   Tab,
   tableFieldHeight,
   tableFieldHeightDetailed,
+  tableHeaderHeight,
+  tableHeaderHeightDetailed,
 } from "../../data/constants";
 import { calcPath } from "../../utils/calcPath";
 import { useDiagram, useSettings, useLayout, useSelect } from "../../hooks";
@@ -24,6 +26,9 @@ export default function Relationship({ data }) {
   const rowHeight = settings.showDetailedView
     ? tableFieldHeightDetailed
     : tableFieldHeight;
+  const headerHeight = settings.showDetailedView
+    ? tableHeaderHeightDetailed
+    : tableHeaderHeight;
 
   const pathValues = useMemo(() => {
     const startTable = tables.find((t) => t.id === data.startTableId);
@@ -128,7 +133,7 @@ export default function Relationship({ data }) {
       <g className="select-none group" onDoubleClick={edit}>
         {/* invisible wider path for better hover ux */}
         <path
-          d={calcPath(pathValues, settings.tableWidth, 1, rowHeight)}
+          d={calcPath(pathValues, settings.tableWidth, 1, rowHeight, headerHeight)}
           fill="none"
           stroke="transparent"
           strokeWidth={12}
@@ -136,7 +141,7 @@ export default function Relationship({ data }) {
         />
         <path
           ref={pathRef}
-          d={calcPath(pathValues, settings.tableWidth, 1, rowHeight)}
+          d={calcPath(pathValues, settings.tableWidth, 1, rowHeight, headerHeight)}
           className="relationship-path"
           fill="none"
           cursor="pointer"

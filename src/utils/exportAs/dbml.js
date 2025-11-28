@@ -90,6 +90,20 @@ function processComment(comment) {
   return `'${escapeQuotes(comment)}'`;
 }
 
+function tableComment(table) {
+  let comment = table.comment || "";
+  if (table.displayName && table.displayName.trim() !== "") {
+    const label = `label: ${table.displayName}`;
+    comment = comment ? `${label}\n${comment}` : label;
+  }
+
+  if (!comment || comment.trim() === "") {
+    return "";
+  }
+
+  return `Note: ${processComment(comment)}`;
+}
+
 function columnComment(field) {
   let comment = field.comment || "";
   if (field.displayName && field.displayName.trim() !== "") {
@@ -179,9 +193,7 @@ export function toDBML(diagram) {
               "\n\t}"
             : ""
         }${
-          table.comment && table.comment.trim() !== ""
-            ? `\n\n\tNote: ${processComment(table.comment)}`
-            : ""
+          tableComment(table) ? `\n\n\t${tableComment(table)}` : ""
         }\n}`,
     )
     .join("\n\n")}\n\n${diagram.relationships

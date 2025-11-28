@@ -82,6 +82,36 @@ export default function TableInfo({ data }) {
   return (
     <div>
       <div className="flex items-center mb-2.5">
+        <div className="text-md font-semibold break-keep">{t("display_name")}:</div>
+        <Input
+          value={data.displayName}
+          placeholder={t("display_name")}
+          className="ms-2"
+          readonly={layout.readOnly}
+          onChange={(value) => updateTable(data.id, { displayName: value })}
+          onFocus={(e) => setEditField({ displayName: e.target.value })}
+          onBlur={(e) => {
+            if (e.target.value === editField.displayName) return;
+            setUndoStack((prev) => [
+              ...prev,
+              {
+                action: Action.EDIT,
+                element: ObjectType.TABLE,
+                component: "self",
+                tid: data.id,
+                undo: editField,
+                redo: { displayName: e.target.value },
+                message: t("edit_table", {
+                  tableName: data.name,
+                  extra: "[display name]",
+                }),
+              },
+            ]);
+            setRedoStack([]);
+          }}
+        />
+      </div>
+      <div className="flex items-center mb-2.5">
         <div className="text-md font-semibold break-keep">{t("name")}:</div>
         <Input
           value={data.name}

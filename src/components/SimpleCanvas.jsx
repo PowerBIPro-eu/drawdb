@@ -120,18 +120,24 @@ function Relationship({ relationship, tables }) {
     <g className="select-none">
       <path
         ref={pathRef}
-        d={calcPath({
-          startFieldIndex: relationship.startFieldId,
-          endFieldIndex: relationship.endFieldId,
-          startTable: {
-            x: tables[relationship.startTableId].x,
-            y: tables[relationship.startTableId].y,
+        d={calcPath(
+          {
+            startFieldIndex: relationship.startFieldId,
+            endFieldIndex: relationship.endFieldId,
+            startTable: {
+              x: tables[relationship.startTableId].x,
+              y: tables[relationship.startTableId].y,
+            },
+            endTable: {
+              x: tables[relationship.endTableId].x,
+              y: tables[relationship.endTableId].y,
+            },
           },
-          endTable: {
-            x: tables[relationship.endTableId].x,
-            y: tables[relationship.endTableId].y,
-          },
-        })}
+          tableWidth,
+          1,
+          tableFieldHeight,
+          40,
+        )}
         stroke="gray"
         fill="none"
         strokeWidth={2}
