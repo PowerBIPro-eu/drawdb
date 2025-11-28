@@ -127,10 +127,12 @@ function Relationship({ relationship, tables }) {
             startTable: {
               x: tables[relationship.startTableId].x,
               y: tables[relationship.startTableId].y,
+              w: tables[relationship.startTableId].width ?? tableWidth,
             },
             endTable: {
               x: tables[relationship.endTableId].x,
               y: tables[relationship.endTableId].y,
+              w: tables[relationship.endTableId].width ?? tableWidth,
             },
           },
           tableWidth,

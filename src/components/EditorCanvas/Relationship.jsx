@@ -42,10 +42,18 @@ export default function Relationship({ data }) {
         (f) => f.id === data.startFieldId,
       ),
       endFieldIndex: endTable.fields.findIndex((f) => f.id === data.endFieldId),
-      startTable: { x: startTable.x, y: startTable.y },
-      endTable: { x: endTable.x, y: endTable.y },
+      startTable: {
+        x: startTable.x,
+        y: startTable.y,
+        w: startTable.width ?? settings.tableWidth,
+      },
+      endTable: {
+        x: endTable.x,
+        y: endTable.y,
+        w: endTable.width ?? settings.tableWidth,
+      },
     };
-  }, [tables, data]);
+  }, [tables, data, settings.tableWidth]);
 
   const pathRef = useRef();
   const labelRef = useRef();
