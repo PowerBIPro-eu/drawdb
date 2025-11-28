@@ -1,20 +1,23 @@
 import { useEffect, useState, useRef } from "react";
 import {
   Cardinality,
-  tableColorStripHeight,
   tableFieldHeight,
   tableHeaderHeight,
   tableWidth,
 } from "../data/constants";
 import { calcPath } from "../utils/calcPath";
+import { getTableHeight, getVisibleFields } from "../utils/utils";
 
-function Table({ table, grab }) {
+function Table({ table, grab, relationships }) {
   const [isHovered, setIsHovered] = useState(false);
   const [hoveredField, setHoveredField] = useState(-1);
-  const height =
-    table.fields.length * tableFieldHeight +
-    tableHeaderHeight +
-    tableColorStripHeight;
+  const height = getTableHeight(
+    table,
+    relationships,
+    tableFieldHeight,
+    tableHeaderHeight,
+  );
+  const visibleFields = getVisibleFields(table, relationships);
 
   return (
     <foreignObject
@@ -48,11 +51,11 @@ function Table({ table, grab }) {
         <div className="font-bold h-[40px] flex justify-between items-center border-b border-zinc-400 bg-zinc-200 px-3">
           {table.name}
         </div>
-        {table.fields.map((e, i) => (
+        {visibleFields.map((e, i) => (
           <div
             key={i}
             className={`${
-              i === table.fields.length - 1 ? "" : "border-b border-gray-400"
+              i === visibleFields.length - 1 ? "" : "border-b border-gray-400"
             } h-[36px] px-2 py-1 flex justify-between`}
             onPointerEnter={(e) => e.isPrimary && setHoveredField(i)}
             onPointerLeave={(e) => e.isPrimary && setHoveredField(-1)}
@@ -76,7 +79,7 @@ function Table({ table, grab }) {
   );
 }
 
-function Relationship({ relationship, tables }) {
+function Relationship({ relationship, tables, relationships }) {
   const pathRef = useRef();
   let start = { x: 0, y: 0 };
   let end = { x: 0, y: 0 };
@@ -116,23 +119,31 @@ function Relationship({ relationship, tables }) {
     end = { x: point2.x, y: point2.y };
   }
 
+  const startTable = tables[relationship.startTableId];
+  const endTable = tables[relationship.endTableId];
+
   return (
     <g className="select-none">
       <path
         ref={pathRef}
         d={calcPath(
           {
-            startFieldIndex: relationship.startFieldId,
-            endFieldIndex: relationship.endFieldId,
+            startFieldIndex: getVisibleFields(
+              startTable,
+              relationships,
+            ).findIndex((f) => f.id === relationship.startFieldId),
+            endFieldIndex: getVisibleFields(endTable, relationships).findIndex(
+              (f) => f.id === relationship.endFieldId,
+            ),
             startTable: {
-              x: tables[relationship.startTableId].x,
-              y: tables[relationship.startTableId].y,
-              w: tables[relationship.startTableId].width ?? tableWidth,
+              x: startTable.x,
+              y: startTable.y,
+              w: startTable.width ?? tableWidth,
             },
             endTable: {
-              x: tables[relationship.endTableId].x,
-              y: tables[relationship.endTableId].y,
-              w: tables[relationship.endTableId].width ?? tableWidth,
+              x: endTable.x,
+              y: endTable.y,
+              w: endTable.width ?? tableWidth,
             },
           },
           tableWidth,
@@ -244,10 +255,20 @@ export default function SimpleCanvas({ diagram, zoom }) {
         }}
       >
         {diagram.relationships.map((r, i) => (
-          <Relationship key={i} relationship={r} tables={tables} />
+          <Relationship
+            key={i}
+            relationship={r}
+            tables={tables}
+            relationships={diagram.relationships}
+          />
         ))}
         {tables.map((t, i) => (
-          <Table key={i} table={t} grab={(e) => grabTable(e, i)} />
+          <Table
+            key={i}
+            table={t}
+            grab={(e) => grabTable(e, i)}
+            relationships={diagram.relationships}
+          />
         ))}
       </g>
     </svg>

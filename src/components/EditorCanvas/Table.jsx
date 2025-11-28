@@ -16,6 +16,8 @@ import {
   IconKeyStroked,
   IconLock,
   IconUnlock,
+  IconChevronUp,
+  IconChevronDown,
 } from "@douyinfe/semi-icons";
 import {
   BuildingMultiple24Regular,
@@ -28,7 +30,7 @@ import { useTranslation } from "react-i18next";
 import { dbToTypes } from "../../data/datatypes";
 import { isRtl } from "../../i18n/utils/rtl";
 import i18n from "../../i18n/i18n";
-import { getTableHeight } from "../../utils/utils";
+import { getTableHeight, getVisibleFields } from "../../utils/utils";
 import { useHover } from "usehooks-ts";
 
 export default function Table({
@@ -43,7 +45,7 @@ export default function Table({
   const ref = useRef(null);
   const isHovered = useHover(ref);
   const [hoveredField, setHoveredField] = useState(null);
-  const { database } = useDiagram();
+  const { database, relationships } = useDiagram();
   const { layout } = useLayout();
   const { deleteTable, deleteField, updateTable } = useDiagram();
   const { settings } = useSettings();
@@ -68,7 +70,14 @@ export default function Table({
     ? tableHeaderHeightDetailed
     : tableHeaderHeight;
 
-  const height = getTableHeight(tableData, rowHeight, headerHeight);
+  const height = getTableHeight(
+    tableData,
+    relationships,
+    rowHeight,
+    headerHeight,
+  );
+
+  const visibleFields = getVisibleFields(tableData, relationships);
 
   const isSelected = useMemo(() => {
     return (
@@ -79,6 +88,10 @@ export default function Table({
       )
     );
   }, [selectedElement, tableData, bulkSelectedElements]);
+
+  const toggleCollapse = () => {
+    updateTable(tableData.id, { collapsed: !tableData.collapsed });
+  };
 
   const lockUnlockTable = (e) => {
     const locking = !tableData.locked;
@@ -215,6 +228,21 @@ export default function Table({
               <div className="hidden group-hover:block">
                 <div className="flex justify-end items-center mx-2 space-x-1.5">
                   <Button
+                    icon={
+                      tableData.collapsed ? (
+                        <IconChevronDown />
+                      ) : (
+                        <IconChevronUp />
+                      )
+                    }
+                    size="small"
+                    theme="solid"
+                    style={{
+                      backgroundColor: "#2f68adb3",
+                    }}
+                    onClick={toggleCollapse}
+                  />
+                  <Button
                     icon={tableData.locked ? <IconLock /> : <IconUnlock />}
                     size="small"
                     theme="solid"
@@ -315,7 +343,7 @@ export default function Table({
                 </div>
               </div>
             </div>
-            {tableData.fields.map((e, i) => {
+            {visibleFields.map((e, i) => {
               return settings.showFieldSummary ? (
                 <Popover
                   key={i}

@@ -13,12 +13,13 @@ import { useDiagram, useSettings, useLayout, useSelect } from "../../hooks";
 import { useTranslation } from "react-i18next";
 import { SideSheet } from "@douyinfe/semi-ui";
 import RelationshipInfo from "../EditorSidePanel/RelationshipsTab/RelationshipInfo";
+import { getVisibleFields } from "../../utils/utils";
 
 const labelFontSize = 16;
 
 export default function Relationship({ data }) {
   const { settings } = useSettings();
-  const { tables } = useDiagram();
+  const { tables, relationships } = useDiagram();
   const { layout } = useLayout();
   const { selectedElement, setSelectedElement } = useSelect();
   const { t } = useTranslation();
@@ -38,10 +39,12 @@ export default function Relationship({ data }) {
       return null;
 
     return {
-      startFieldIndex: startTable.fields.findIndex(
+      startFieldIndex: getVisibleFields(startTable, relationships).findIndex(
         (f) => f.id === data.startFieldId,
       ),
-      endFieldIndex: endTable.fields.findIndex((f) => f.id === data.endFieldId),
+      endFieldIndex: getVisibleFields(endTable, relationships).findIndex(
+        (f) => f.id === data.endFieldId,
+      ),
       startTable: {
         x: startTable.x,
         y: startTable.y,
@@ -53,7 +56,7 @@ export default function Relationship({ data }) {
         w: endTable.width ?? settings.tableWidth,
       },
     };
-  }, [tables, data, settings.tableWidth]);
+  }, [tables, data, settings.tableWidth, relationships]);
 
   const pathRef = useRef();
   const labelRef = useRef();

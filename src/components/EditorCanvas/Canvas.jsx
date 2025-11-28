@@ -151,7 +151,7 @@ export default function Canvas() {
         x: table.x,
         y: table.y,
         width: table.width ?? settings.tableWidth,
-        height: getTableHeight(table, rowHeight, headerHeight),
+        height: getTableHeight(table, relationships, rowHeight, headerHeight),
       };
       if (shouldAddElement(tableRect, element)) {
         elements.push(element);

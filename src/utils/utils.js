@@ -62,9 +62,27 @@ export function areFieldsCompatible(db, field1Type, field2Type) {
   return same || isCompatible;
 }
 
-export function getTableHeight(table, rowHeight = tableFieldHeight, headerHeight = tableHeaderHeight) {
+export function getVisibleFields(table, relationships) {
+  if (!table.collapsed) return table.fields;
+  return table.fields.filter((field) => {
+    if (field.primary) return true;
+    return relationships.some(
+      (r) =>
+        (r.startTableId === table.id && r.startFieldId === field.id) ||
+        (r.endTableId === table.id && r.endFieldId === field.id),
+    );
+  });
+}
+
+export function getTableHeight(
+  table,
+  relationships = [],
+  rowHeight = tableFieldHeight,
+  headerHeight = tableHeaderHeight,
+) {
+  const visibleFields = getVisibleFields(table, relationships);
   return (
-    table.fields.length * rowHeight +
+    visibleFields.length * rowHeight +
     headerHeight +
     tableColorStripHeight + 4
   );
