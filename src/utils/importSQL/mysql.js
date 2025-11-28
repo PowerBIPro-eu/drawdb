@@ -127,7 +127,7 @@ export function fromMySQL(ast, diagramDb = DB.GENERIC) {
               );
               if (!startField) return;
 
-              relationship.name = `fk_${startTableName}_${startFieldName}_${endTableName}`;
+              relationship.name = `fk_${startTableName}_${startFieldName}_${endTableName}_${endFieldName}`;
               relationship.startTableId = table.id;
               relationship.endTableId = endTable.id;
               relationship.endFieldId = endField.id;
@@ -233,7 +233,7 @@ export function fromMySQL(ast, diagramDb = DB.GENERIC) {
           );
           if (!startField) return;
 
-          relationship.name = `fk_${startTableName}_${startFieldName}_${endTableName}`;
+          relationship.name = `fk_${startTableName}_${startFieldName}_${endTableName}_${endFieldName}`;
           relationship.startTableId = startTable.id;
           relationship.startFieldId = startField.id;
           relationship.endTableId = endTable.id;

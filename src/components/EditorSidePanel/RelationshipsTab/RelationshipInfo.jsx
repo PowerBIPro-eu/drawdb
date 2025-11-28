@@ -90,7 +90,7 @@ export default function RelationshipInfo({ data }) {
     setRedoStack([]);
 
     updateRelationship(data.id, {
-      name: `fk_${relValues.endTableName}_${relValues.endFieldName}_${relValues.startTableName}`,
+      name: `fk_${relValues.endTableName}_${relValues.endFieldName}_${relValues.startTableName}_${relValues.startFieldName}`,
       startTableId: data.endTableId,
       startFieldId: data.endFieldId,
       endTableId: data.startTableId,

@@ -110,7 +110,14 @@ export function fromDBML(src) {
       const relationship = {};
 
       relationship.name =
-        "fk_" + startTableName + "_" + startFieldName + "_" + endTableName;
+        "fk_" +
+        startTableName +
+        "_" +
+        startFieldName +
+        "_" +
+        endTableName +
+        "_" +
+        endFieldName;
       relationship.startTableId = startTable.id;
       relationship.endTableId = endTable.id;
       relationship.endFieldId = endField.id;

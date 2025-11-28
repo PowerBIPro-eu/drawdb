@@ -107,7 +107,7 @@ export function fromOracleSQL(ast, diagramDb = DB.GENERIC) {
             relationship.name =
               d.name && Boolean(d.name.trim())
                 ? d.name
-                : `fk_${table.name}_${startFieldName}_${endTableName}`;
+                : `fk_${table.name}_${startFieldName}_${endTableName}_${endFieldName}`;
             relationship.deleteConstraint =
               d.constraint.reference.on_delete &&
               Boolean(d.constraint.reference.on_delete.trim())

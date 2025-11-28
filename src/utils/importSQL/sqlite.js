@@ -60,7 +60,14 @@ export function fromSQLite(ast, diagramDb = DB.GENERIC) {
     if (!startField) return;
 
     relationship.name =
-      "fk_" + startTable.name + "_" + startFieldName + "_" + endTableName;
+      "fk_" +
+      startTable.name +
+      "_" +
+      startFieldName +
+      "_" +
+      endTableName +
+      "_" +
+      endFieldName;
     relationship.startTableId = startTable.id;
     relationship.endTableId = endTable.id;
     relationship.endFieldId = endField.id;

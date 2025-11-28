@@ -147,7 +147,7 @@ export function fromPostgres(ast, diagramDb = DB.GENERIC) {
               );
               if (!startField) return;
 
-              relationship.name = `fk_${startTableName}_${startFieldName}_${endTableName}`;
+              relationship.name = `fk_${startTableName}_${startFieldName}_${endTableName}_${endFieldName}`;
               relationship.startTableId = startTableId;
               relationship.endTableId = endTable.id;
               relationship.endFieldId = endField.id;
@@ -219,7 +219,7 @@ export function fromPostgres(ast, diagramDb = DB.GENERIC) {
             );
             if (!startField) return;
 
-            relationship.name = `fk_${startTableName}_${startFieldName}_${endTableName}`;
+            relationship.name = `fk_${startTableName}_${startFieldName}_${endTableName}_${endFieldName}`;
             relationship.startTableId = startTableId;
             relationship.startFieldId = startField.id;
             relationship.endTableId = endTable.id;
@@ -340,7 +340,7 @@ export function fromPostgres(ast, diagramDb = DB.GENERIC) {
             );
             if (!startField) return;
 
-            relationship.name = `fk_${startTableName}_${startFieldName}_${endTableName}`;
+            relationship.name = `fk_${startTableName}_${startFieldName}_${endTableName}_${endFieldName}`;
             relationship.startTableId = startTable.id;
             relationship.startFieldId = startField.id;
             relationship.endTableId = endTable.id;

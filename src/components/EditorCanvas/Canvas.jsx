@@ -679,7 +679,7 @@ export default function Canvas() {
       endFieldId: hoveredTable.fieldId,
       updateConstraint: Constraint.NONE,
       deleteConstraint: Constraint.NONE,
-      name: `fk_${startTableName}_${startField.name}_${endTableName}`,
+      name: `fk_${startTableName}_${startField.name}_${endTableName}_${endField.name}`,
       id: nanoid(),
     };
     delete newRelationship.startX;

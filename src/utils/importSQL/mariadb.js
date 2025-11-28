@@ -128,7 +128,7 @@ export function fromMariaDB(ast, diagramDb = DB.GENERIC) {
               );
               if (!startField) return;
 
-              relationship.name = `fk_${startTableName}_${startFieldName}_${endTableName}`;
+              relationship.name = `fk_${startTableName}_${startFieldName}_${endTableName}_${endFieldName}`;
               relationship.startTableId = startTableId;
               relationship.endTableId = endTable.id;
               relationship.endFieldId = endField.id;
@@ -234,7 +234,14 @@ export function fromMariaDB(ast, diagramDb = DB.GENERIC) {
           if (!startField) return;
 
           relationship.name =
-            "fk_" + startTableName + "_" + startFieldName + "_" + endTableName;
+            "fk_" +
+            startTableName +
+            "_" +
+            startFieldName +
+            "_" +
+            endTableName +
+            "_" +
+            endFieldName;
           relationship.startTableId = startTable.id;
           relationship.startFieldId = startField.id;
           relationship.endTableId = endTable.id;
