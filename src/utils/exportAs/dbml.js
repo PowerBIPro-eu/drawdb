@@ -92,9 +92,17 @@ function processComment(comment) {
 
 function tableComment(table) {
   let comment = table.comment || "";
+  const parts = [];
   if (table.displayName && table.displayName.trim() !== "") {
-    const label = `label: ${table.displayName}`;
-    comment = comment ? `${label}\n${comment}` : label;
+    parts.push(`label: ${table.displayName}`);
+  }
+  if (table.ownership && table.ownership.trim() !== "") {
+    parts.push(`ownership: ${table.ownership}`);
+  }
+  
+  if (parts.length > 0) {
+    const meta = parts.join("\n");
+    comment = comment ? `${meta}\n${comment}` : meta;
   }
 
   if (!comment || comment.trim() === "") {

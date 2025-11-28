@@ -20,8 +20,13 @@ export function fromDBML(src) {
       
       const note = table.note ?? "";
       const labelMatch = note.match(/label:\s*(.*?)(?:$|\n)/);
+      const ownershipMatch = note.match(/ownership:\s*(.*?)(?:$|\n)/);
       parsedTable.displayName = labelMatch ? labelMatch[1].trim() : "";
-      parsedTable.comment = note.replace(/label:\s*.*?(?:$|\n)/, "").trim();
+      parsedTable.ownership = ownershipMatch ? ownershipMatch[1].trim() : "UserTeam";
+      parsedTable.comment = note
+        .replace(/label:\s*.*?(?:$|\n)/, "")
+        .replace(/ownership:\s*.*?(?:$|\n)/, "")
+        .trim();
 
       parsedTable.color = table.headerColor ?? "#175e7a";
       parsedTable.fields = [];

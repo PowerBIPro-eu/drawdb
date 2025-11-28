@@ -22,6 +22,7 @@ export default function DiagramContextProvider({ children }) {
       id,
       name: `table_${id}`,
       displayName: "",
+      ownership: "UserTeam",
       x: transform.pan.x,
       y: transform.pan.y,
       width: tableWidth,

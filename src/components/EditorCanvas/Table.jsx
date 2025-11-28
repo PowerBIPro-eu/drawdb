@@ -17,6 +17,10 @@ import {
   IconLock,
   IconUnlock,
 } from "@douyinfe/semi-icons";
+import {
+  BuildingMultiple24Regular,
+  People24Regular,
+} from "@fluentui/react-icons";
 import { Popover, Tag, Button, SideSheet } from "@douyinfe/semi-ui";
 import { useLayout, useSettings, useDiagram, useSelect } from "../../hooks";
 import TableInfo from "../EditorSidePanel/TablesTab/TableInfo";
@@ -184,20 +188,29 @@ export default function Table({
               style={{ height: `${headerHeight}px` }}
             >
               <div className="px-3 overflow-hidden text-ellipsis whitespace-nowrap flex flex-col">
-                {settings.showDetailedView && tableData.displayName ? (
-                  <>
-                    <span className="overflow-hidden text-ellipsis whitespace-nowrap">
-                      {tableData.displayName}
-                    </span>
-                    <span className="text-xs text-gray-500 overflow-hidden text-ellipsis whitespace-nowrap font-normal">
-                      {tableData.name}
-                    </span>
-                  </>
-                ) : (
-                  <span className="overflow-hidden text-ellipsis whitespace-nowrap">
-                    {tableData.name}
-                  </span>
-                )}
+                <div className="flex items-center gap-2">
+                  {tableData.ownership === "Organization" ? (
+                    <BuildingMultiple24Regular className="text-zinc-500" />
+                  ) : (
+                    <People24Regular className="text-zinc-500" />
+                  )}
+                  <div className="flex flex-col overflow-hidden">
+                    {settings.showDetailedView && tableData.displayName ? (
+                      <>
+                        <span className="overflow-hidden text-ellipsis whitespace-nowrap">
+                          {tableData.displayName}
+                        </span>
+                        <span className="text-xs text-gray-500 overflow-hidden text-ellipsis whitespace-nowrap font-normal">
+                          {tableData.name}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="overflow-hidden text-ellipsis whitespace-nowrap">
+                        {tableData.name}
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
               <div className="hidden group-hover:block">
                 <div className="flex justify-end items-center mx-2 space-x-1.5">
@@ -224,6 +237,12 @@ export default function Table({
                     key={tableData.id}
                     content={
                       <div className="popover-theme">
+                        <div className="mb-2">
+                          <strong>Ownership:</strong>{" "}
+                          {tableData.ownership === "Organization"
+                            ? "Organization"
+                            : "User/Team"}
+                        </div>
                         <div className="mb-2">
                           <strong>{t("comment")}:</strong>{" "}
                           {tableData.comment === "" ? (

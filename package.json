@@ -15,6 +15,7 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@douyinfe/semi-ui": "^2.77.1",
+    "@fluentui/react-icons": "^2.0.315",
     "@lexical/react": "^0.12.5",
     "@monaco-editor/react": "^4.7.0",
     "@vercel/analytics": "^1.2.2",

@@ -6,6 +6,8 @@ import {
   Button,
   Card,
   Select,
+  RadioGroup,
+  Radio,
 } from "@douyinfe/semi-ui";
 import ColorPicker from "../ColorPicker";
 import { IconDeleteStroked } from "@douyinfe/semi-icons";
@@ -141,6 +143,40 @@ export default function TableInfo({ data }) {
             setRedoStack([]);
           }}
         />
+      </div>
+
+      <div className="flex items-center mb-2.5">
+        <div className="text-md font-semibold break-keep">Ownership:</div>
+        <RadioGroup
+          type="button"
+          buttonSize="middle"
+          className="ms-2"
+          value={data.ownership || "UserTeam"}
+          onChange={(e) => {
+            if (layout.readOnly) return;
+            const newValue = e.target.value;
+            setUndoStack((prev) => [
+              ...prev,
+              {
+                action: Action.EDIT,
+                element: ObjectType.TABLE,
+                component: "self",
+                tid: data.id,
+                undo: { ownership: data.ownership },
+                redo: { ownership: newValue },
+                message: t("edit_table", {
+                  tableName: data.name,
+                  extra: "[ownership]",
+                }),
+              },
+            ]);
+            setRedoStack([]);
+            updateTable(data.id, { ownership: newValue });
+          }}
+        >
+          <Radio value="Organization">Organization</Radio>
+          <Radio value="UserTeam">User/Team</Radio>
+        </RadioGroup>
       </div>
 
       <SortableList
