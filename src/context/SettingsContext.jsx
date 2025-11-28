@@ -14,6 +14,7 @@ const defaultSettings = {
   tableWidth: tableWidth,
   showDebugCoordinates: false,
   showDetailedView: false,
+  showMinimap: true,
 };
 
 export const SettingsContext = createContext(defaultSettings);

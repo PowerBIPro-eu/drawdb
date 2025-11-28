@@ -1502,6 +1502,18 @@ export default function ControlPanel({
             showDebugCoordinates: !prev.showDebugCoordinates,
           })),
       },
+      show_minimap: {
+        state: settings.showMinimap ? (
+          <i className="bi bi-toggle-on" />
+        ) : (
+          <i className="bi bi-toggle-off" />
+        ),
+        function: () =>
+          setSettings((prev) => ({
+            ...prev,
+            showMinimap: !prev.showMinimap,
+          })),
+      },
       theme: {
         children: [
           {

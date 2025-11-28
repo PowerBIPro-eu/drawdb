@@ -68,6 +68,7 @@ const en = {
     autosave: "Autosave",
     panning: "Panning",
     show_debug_coordinates: "Show debug coordinates",
+    show_minimap: "Show minimap",
     transform: "Transform",
     viewbox: "View Box",
     cursor_coordinates: "Cursor Coordinates",
