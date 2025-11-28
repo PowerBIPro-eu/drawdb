@@ -1,5 +1,5 @@
 import { createContext, useState } from "react";
-import { Action, DB, ObjectType, defaultBlue } from "../data/constants";
+import { Action, DB, ObjectType, defaultBlue, tableWidth } from "../data/constants";
 import { useTransform, useUndoRedo, useSelect } from "../hooks";
 import { Toast } from "@douyinfe/semi-ui";
 import { useTranslation } from "react-i18next";
@@ -23,6 +23,7 @@ export default function DiagramContextProvider({ children }) {
       name: `table_${id}`,
       x: transform.pan.x,
       y: transform.pan.y,
+      width: tableWidth,
       locked: false,
       fields: [
         {

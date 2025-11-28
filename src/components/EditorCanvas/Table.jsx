@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef } from "react";
 import {
   Tab,
   ObjectType,
@@ -23,6 +23,7 @@ import { dbToTypes } from "../../data/datatypes";
 import { isRtl } from "../../i18n/utils/rtl";
 import i18n from "../../i18n/i18n";
 import { getTableHeight } from "../../utils/utils";
+import { useHover } from "usehooks-ts";
 
 export default function Table({
   tableData,
@@ -30,7 +31,11 @@ export default function Table({
   setHoveredTable,
   handleGripField,
   setLinkingLine,
+  setTableResize,
+  setTableInitDimensions,
 }) {
+  const ref = useRef(null);
+  const isHovered = useHover(ref);
   const [hoveredField, setHoveredField] = useState(null);
   const { database } = useDiagram();
   const { layout } = useLayout();
@@ -129,210 +134,231 @@ export default function Table({
     }
   };
 
+  const width = tableData.width ?? settings.tableWidth;
+
+  const handleResize = () => {
+    setTableResize({ id: tableData.id, dir: "right" });
+    setTableInitDimensions({ width: width });
+  };
+
   if (tableData.hidden) return null;
 
   return (
     <>
-      <foreignObject
-        key={tableData.id}
-        x={tableData.x}
-        y={tableData.y}
-        width={settings.tableWidth}
-        height={height}
-        className="group drop-shadow-lg rounded-md cursor-move"
-        onPointerDown={onPointerDown}
-      >
-        <div
-          onDoubleClick={openEditor}
-          className={`border-2 hover:border-dashed hover:border-blue-500
+      <g ref={ref}>
+        <foreignObject
+          key={tableData.id}
+          x={tableData.x}
+          y={tableData.y}
+          width={width}
+          height={height}
+          className="group drop-shadow-lg rounded-md cursor-move"
+          onPointerDown={onPointerDown}
+        >
+          <div
+            onDoubleClick={openEditor}
+            className={`border-2 hover:border-dashed hover:border-blue-500
                select-none rounded-lg w-full ${
                  settings.mode === "light"
                    ? "bg-zinc-100 text-zinc-800"
                    : "bg-zinc-800 text-zinc-200"
                } ${isSelected ? "border-solid border-blue-500" : borderColor}`}
-          style={{ direction: "ltr" }}
-        >
-          <div
-            className="h-[10px] w-full rounded-t-md"
-            style={{ backgroundColor: tableData.color }}
-          />
-          <div
-            className={`overflow-hidden font-bold h-[40px] flex justify-between items-center border-b border-gray-400 ${
-              settings.mode === "light" ? "bg-zinc-200" : "bg-zinc-900"
-            }`}
+            style={{ direction: "ltr" }}
           >
-            <div className="px-3 overflow-hidden text-ellipsis whitespace-nowrap">
-              {tableData.name}
-            </div>
-            <div className="hidden group-hover:block">
-              <div className="flex justify-end items-center mx-2 space-x-1.5">
-                <Button
-                  icon={tableData.locked ? <IconLock /> : <IconUnlock />}
-                  size="small"
-                  theme="solid"
-                  style={{
-                    backgroundColor: "#2f68adb3",
-                  }}
-                  disabled={layout.readOnly}
-                  onClick={lockUnlockTable}
-                />
-                <Button
-                  icon={<IconEdit />}
-                  size="small"
-                  theme="solid"
-                  style={{
-                    backgroundColor: "#2f68adb3",
-                  }}
-                  onClick={openEditor}
-                />
-                <Popover
-                  key={tableData.id}
-                  content={
-                    <div className="popover-theme">
-                      <div className="mb-2">
-                        <strong>{t("comment")}:</strong>{" "}
-                        {tableData.comment === "" ? (
-                          t("not_set")
-                        ) : (
-                          <div>{tableData.comment}</div>
-                        )}
-                      </div>
-                      <div>
-                        <strong
-                          className={`${
-                            tableData.indices.length === 0 ? "" : "block"
-                          }`}
-                        >
-                          {t("indices")}:
-                        </strong>{" "}
-                        {tableData.indices.length === 0 ? (
-                          t("not_set")
-                        ) : (
-                          <div>
-                            {tableData.indices.map((index, k) => (
-                              <div
-                                key={k}
-                                className={`flex items-center my-1 px-2 py-1 rounded ${
-                                  settings.mode === "light"
-                                    ? "bg-gray-100"
-                                    : "bg-zinc-800"
-                                }`}
-                              >
-                                <i className="fa-solid fa-thumbtack me-2 mt-1 text-slate-500"></i>
-                                <div>
-                                  {index.fields.map((f) => (
-                                    <Tag color="blue" key={f} className="me-1">
-                                      {f}
-                                    </Tag>
-                                  ))}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      <Button
-                        icon={<IconDeleteStroked />}
-                        type="danger"
-                        block
-                        style={{ marginTop: "8px" }}
-                        onClick={() => deleteTable(tableData.id)}
-                        disabled={layout.readOnly}
-                      >
-                        {t("delete")}
-                      </Button>
-                    </div>
-                  }
-                  position="rightTop"
-                  showArrow
-                  trigger="click"
-                  style={{ width: "200px", wordBreak: "break-word" }}
-                >
+            <div
+              className="h-[10px] w-full rounded-t-md"
+              style={{ backgroundColor: tableData.color }}
+            />
+            <div
+              className={`overflow-hidden font-bold h-[40px] flex justify-between items-center border-b border-gray-400 ${
+                settings.mode === "light" ? "bg-zinc-200" : "bg-zinc-900"
+              }`}
+            >
+              <div className="px-3 overflow-hidden text-ellipsis whitespace-nowrap">
+                {tableData.name}
+              </div>
+              <div className="hidden group-hover:block">
+                <div className="flex justify-end items-center mx-2 space-x-1.5">
                   <Button
-                    icon={<IconMore />}
-                    type="tertiary"
+                    icon={tableData.locked ? <IconLock /> : <IconUnlock />}
                     size="small"
+                    theme="solid"
                     style={{
-                      backgroundColor: "#808080b3",
-                      color: "white",
+                      backgroundColor: "#2f68adb3",
                     }}
+                    disabled={layout.readOnly}
+                    onClick={lockUnlockTable}
                   />
-                </Popover>
+                  <Button
+                    icon={<IconEdit />}
+                    size="small"
+                    theme="solid"
+                    style={{
+                      backgroundColor: "#2f68adb3",
+                    }}
+                    onClick={openEditor}
+                  />
+                  <Popover
+                    key={tableData.id}
+                    content={
+                      <div className="popover-theme">
+                        <div className="mb-2">
+                          <strong>{t("comment")}:</strong>{" "}
+                          {tableData.comment === "" ? (
+                            t("not_set")
+                          ) : (
+                            <div>{tableData.comment}</div>
+                          )}
+                        </div>
+                        <div>
+                          <strong
+                            className={`${
+                              tableData.indices.length === 0 ? "" : "block"
+                            }`}
+                          >
+                            {t("indices")}:
+                          </strong>{" "}
+                          {tableData.indices.length === 0 ? (
+                            t("not_set")
+                          ) : (
+                            <div>
+                              {tableData.indices.map((index, k) => (
+                                <div
+                                  key={k}
+                                  className={`flex items-center my-1 px-2 py-1 rounded ${
+                                    settings.mode === "light"
+                                      ? "bg-gray-100"
+                                      : "bg-zinc-800"
+                                  }`}
+                                >
+                                  <i className="fa-solid fa-thumbtack me-2 mt-1 text-slate-500"></i>
+                                  <div>
+                                    {index.fields.map((f) => (
+                                      <Tag color="blue" key={f} className="me-1">
+                                        {f}
+                                      </Tag>
+                                    ))}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <Button
+                          icon={<IconDeleteStroked />}
+                          type="danger"
+                          block
+                          style={{ marginTop: "8px" }}
+                          onClick={() => deleteTable(tableData.id)}
+                          disabled={layout.readOnly}
+                        >
+                          {t("delete")}
+                        </Button>
+                      </div>
+                    }
+                    position="rightTop"
+                    showArrow
+                    trigger="click"
+                    style={{ width: "200px", wordBreak: "break-word" }}
+                  >
+                    <Button
+                      icon={<IconMore />}
+                      type="tertiary"
+                      size="small"
+                      style={{
+                        backgroundColor: "#808080b3",
+                        color: "white",
+                      }}
+                    />
+                  </Popover>
+                </div>
               </div>
             </div>
-          </div>
-          {tableData.fields.map((e, i) => {
-            return settings.showFieldSummary ? (
-              <Popover
-                key={i}
-                content={
-                  <div className="popover-theme">
-                    <div
-                      className="flex justify-between items-center pb-2"
-                      style={{ direction: "ltr" }}
-                    >
-                      <p className="me-4 font-bold">{e.name}</p>
-                      <p
-                        className={
-                          "ms-4 font-mono " + dbToTypes[database][e.type].color
-                        }
+            {tableData.fields.map((e, i) => {
+              return settings.showFieldSummary ? (
+                <Popover
+                  key={i}
+                  content={
+                    <div className="popover-theme">
+                      <div
+                        className="flex justify-between items-center pb-2"
+                        style={{ direction: "ltr" }}
                       >
-                        {e.type +
-                          ((dbToTypes[database][e.type].isSized ||
-                            dbToTypes[database][e.type].hasPrecision) &&
-                          e.size &&
-                          e.size !== ""
-                            ? "(" + e.size + ")"
-                            : "")}
+                        <p className="me-4 font-bold">{e.name}</p>
+                        <p
+                          className={
+                            "ms-4 font-mono " + dbToTypes[database][e.type].color
+                          }
+                        >
+                          {e.type +
+                            ((dbToTypes[database][e.type].isSized ||
+                              dbToTypes[database][e.type].hasPrecision) &&
+                            e.size &&
+                            e.size !== ""
+                              ? "(" + e.size + ")"
+                              : "")}
+                        </p>
+                      </div>
+                      <hr />
+                      {e.primary && (
+                        <Tag color="blue" className="me-2 my-2">
+                          {t("primary")}
+                        </Tag>
+                      )}
+                      {e.unique && (
+                        <Tag color="amber" className="me-2 my-2">
+                          {t("unique")}
+                        </Tag>
+                      )}
+                      {e.notNull && (
+                        <Tag color="purple" className="me-2 my-2">
+                          {t("not_null")}
+                        </Tag>
+                      )}
+                      {e.increment && (
+                        <Tag color="green" className="me-2 my-2">
+                          {t("autoincrement")}
+                        </Tag>
+                      )}
+                      <p>
+                        <strong>{t("default_value")}: </strong>
+                        {e.default === "" ? t("not_set") : e.default}
+                      </p>
+                      <p>
+                        <strong>{t("comment")}: </strong>
+                        {e.comment === "" ? t("not_set") : e.comment}
                       </p>
                     </div>
-                    <hr />
-                    {e.primary && (
-                      <Tag color="blue" className="me-2 my-2">
-                        {t("primary")}
-                      </Tag>
-                    )}
-                    {e.unique && (
-                      <Tag color="amber" className="me-2 my-2">
-                        {t("unique")}
-                      </Tag>
-                    )}
-                    {e.notNull && (
-                      <Tag color="purple" className="me-2 my-2">
-                        {t("not_null")}
-                      </Tag>
-                    )}
-                    {e.increment && (
-                      <Tag color="green" className="me-2 my-2">
-                        {t("autoincrement")}
-                      </Tag>
-                    )}
-                    <p>
-                      <strong>{t("default_value")}: </strong>
-                      {e.default === "" ? t("not_set") : e.default}
-                    </p>
-                    <p>
-                      <strong>{t("comment")}: </strong>
-                      {e.comment === "" ? t("not_set") : e.comment}
-                    </p>
-                  </div>
-                }
-                position="right"
-                showArrow
-                style={
-                  isRtl(i18n.language)
-                    ? { direction: "rtl" }
-                    : { direction: "ltr" }
-                }
-              >
-                {field(e, i)}
-              </Popover>
-            ) : (
-              field(e, i)
-            );
-          })}
-        </div>
-      </foreignObject>
+                  }
+                  position="right"
+                  showArrow
+                  style={
+                    isRtl(i18n.language)
+                      ? { direction: "rtl" }
+                      : { direction: "ltr" }
+                  }
+                >
+                  {field(e, i)}
+                </Popover>
+              ) : (
+                field(e, i)
+              );
+            })}
+          </div>
+        </foreignObject>
+        {isHovered && (
+          <circle
+            cx={tableData.x + width}
+            cy={tableData.y + height / 2}
+            r={6}
+            fill={settings.mode === "light" ? "white" : "rgb(28, 31, 35)"}
+            stroke="#5891db"
+            strokeWidth={2}
+            cursor="ew-resize"
+            onPointerDown={(e) => e.isPrimary && handleResize()}
+          />
+        )}
+      </g>
       <SideSheet
         title={t("edit")}
         size="small"

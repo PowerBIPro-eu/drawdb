@@ -34,6 +34,7 @@ export function updateFromDBML(dbml, currentDiagram) {
       id: oldTable.id,
       x: oldTable.x,
       y: oldTable.y,
+      width: oldTable.width,
       color: newTable.color, // Use new color from DBML
       fields: mergedFields,
       indices: newTable.indices, // Indices are complex, let's just take new ones.
