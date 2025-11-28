@@ -13,6 +13,15 @@ export function fromDBML(src) {
   const relationships = [];
 
   for (const schema of ast.schemas) {
+    for (const schemaEnum of schema.enums) {
+      const parsedEnum = {};
+
+      parsedEnum.name = schemaEnum.name;
+      parsedEnum.values = schemaEnum.values.map((x) => x.name);
+
+      enums.push(parsedEnum);
+    }
+
     for (const table of schema.tables) {
       let parsedTable = {};
       parsedTable.id = nanoid();
@@ -37,7 +46,17 @@ export function fromDBML(src) {
 
         field.id = nanoid();
         field.name = column.name;
-        field.type = column.type.type_name.toUpperCase();
+        
+        const typeName = column.type.type_name;
+        const matchedEnum = enums.find((e) => e.name === typeName);
+        
+        if (matchedEnum) {
+          field.type = "ENUM";
+          field.values = matchedEnum.values;
+        } else {
+          field.type = typeName.toUpperCase();
+        }
+
         field.default = column.dbdefault?.value ?? "";
         field.check = "";
         field.primary = !!column.pk;
@@ -121,15 +140,6 @@ export function fromDBML(src) {
       }
 
       relationships.push(relationship);
-    }
-
-    for (const schemaEnum of schema.enums) {
-      const parsedEnum = {};
-
-      parsedEnum.name = schemaEnum.name;
-      parsedEnum.values = schemaEnum.values.map((x) => x.name);
-
-      enums.push(parsedEnum);
     }
   }
 
