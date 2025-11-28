@@ -116,6 +116,7 @@ const en = {
     strict_mode_is_on_no_issues:
       "Strict mode is off so no issues will be displayed.",
     name: "Name",
+    display_name: "Display name",
     type: "Type",
     null: "Null",
     not_null: "Not null",
@@ -253,6 +254,7 @@ const en = {
     share_info:
       "* Sharing this link will not create a live real-time collaboration session.",
     show_relationship_labels: "Show relationship labels",
+    show_detailed_view: "Show Display Names",
     docs: "Docs",
     supported_types: "Supported file types:",
     bulk_update: "Bulk update",

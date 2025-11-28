@@ -34,7 +34,11 @@ export function fromDBML(src) {
         field.unique = !!column.pk;
         field.notNull = !!column.not_null;
         field.increment = !!column.increment;
-        field.comment = column.note ?? "";
+        
+        const note = column.note ?? "";
+        const labelMatch = note.match(/label:\s*(.*?)(?:$|\n)/);
+        field.displayName = labelMatch ? labelMatch[1].trim() : "";
+        field.comment = note.replace(/label:\s*.*?(?:$|\n)/, "").trim();
 
         parsedTable.fields.push(field);
       }

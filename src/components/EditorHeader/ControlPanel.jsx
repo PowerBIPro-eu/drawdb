@@ -1478,6 +1478,18 @@ export default function ControlPanel({
             showRelationshipLabels: !prev.showRelationshipLabels,
           })),
       },
+      show_detailed_view: {
+        state: settings.showDetailedView ? (
+          <i className="bi bi-toggle-on" />
+        ) : (
+          <i className="bi bi-toggle-off" />
+        ),
+        function: () =>
+          setSettings((prev) => ({
+            ...prev,
+            showDetailedView: !prev.showDetailedView,
+          })),
+      },
       show_debug_coordinates: {
         state: settings.showDebugCoordinates ? (
           <i className="bi bi-toggle-on" />

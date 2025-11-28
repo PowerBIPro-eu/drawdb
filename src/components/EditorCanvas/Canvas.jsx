@@ -8,6 +8,8 @@ import {
   gridSize,
   gridCircleRadius,
   minAreaSize,
+  tableFieldHeight,
+  tableFieldHeightDetailed,
 } from "../../data/constants";
 import { Toast } from "@douyinfe/semi-ui";
 import Table from "./Table";
@@ -52,6 +54,11 @@ export default function Canvas() {
   const { settings } = useSettings();
   const { setUndoStack, setRedoStack } = useUndoRedo();
   const { transform, setTransform } = useTransform();
+
+  const rowHeight = settings.showDetailedView
+    ? tableFieldHeightDetailed
+    : tableFieldHeight;
+
   const {
     selectedElement,
     setSelectedElement,
@@ -139,7 +146,7 @@ export default function Canvas() {
         x: table.x,
         y: table.y,
         width: table.width ?? settings.tableWidth,
-        height: getTableHeight(table),
+        height: getTableHeight(table, rowHeight),
       };
       if (shouldAddElement(tableRect, element)) {
         elements.push(element);

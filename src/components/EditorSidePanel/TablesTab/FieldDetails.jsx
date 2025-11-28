@@ -25,6 +25,35 @@ export default function FieldDetails({ data, tid }) {
 
   return (
     <div>
+      <div className="font-semibold">{t("display_name")}</div>
+      <Input
+        className="my-2"
+        placeholder={t("display_name")}
+        value={data.displayName}
+        readonly={layout.readOnly}
+        onChange={(value) => updateField(tid, data.id, { displayName: value })}
+        onFocus={(e) => setEditField({ displayName: e.target.value })}
+        onBlur={(e) => {
+          if (e.target.value === editField.displayName) return;
+          setUndoStack((prev) => [
+            ...prev,
+            {
+              action: Action.EDIT,
+              element: ObjectType.TABLE,
+              component: "field",
+              tid: tid,
+              fid: data.id,
+              undo: editField,
+              redo: { displayName: e.target.value },
+              message: t("edit_table", {
+                tableName: table.name,
+                extra: "[field]",
+              }),
+            },
+          ]);
+          setRedoStack([]);
+        }}
+      />
       <div className="font-semibold">{t("default_value")}</div>
       <Input
         className="my-2"

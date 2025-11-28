@@ -1,5 +1,11 @@
 import { useMemo, useRef, useState, useEffect } from "react";
-import { Cardinality, ObjectType, Tab } from "../../data/constants";
+import {
+  Cardinality,
+  ObjectType,
+  Tab,
+  tableFieldHeight,
+  tableFieldHeightDetailed,
+} from "../../data/constants";
 import { calcPath } from "../../utils/calcPath";
 import { useDiagram, useSettings, useLayout, useSelect } from "../../hooks";
 import { useTranslation } from "react-i18next";
@@ -14,6 +20,10 @@ export default function Relationship({ data }) {
   const { layout } = useLayout();
   const { selectedElement, setSelectedElement } = useSelect();
   const { t } = useTranslation();
+
+  const rowHeight = settings.showDetailedView
+    ? tableFieldHeightDetailed
+    : tableFieldHeight;
 
   const pathValues = useMemo(() => {
     const startTable = tables.find((t) => t.id === data.startTableId);
@@ -118,7 +128,7 @@ export default function Relationship({ data }) {
       <g className="select-none group" onDoubleClick={edit}>
         {/* invisible wider path for better hover ux */}
         <path
-          d={calcPath(pathValues, settings.tableWidth)}
+          d={calcPath(pathValues, settings.tableWidth, 1, rowHeight)}
           fill="none"
           stroke="transparent"
           strokeWidth={12}
@@ -126,7 +136,7 @@ export default function Relationship({ data }) {
         />
         <path
           ref={pathRef}
-          d={calcPath(pathValues, settings.tableWidth)}
+          d={calcPath(pathValues, settings.tableWidth, 1, rowHeight)}
           className="relationship-path"
           fill="none"
           cursor="pointer"

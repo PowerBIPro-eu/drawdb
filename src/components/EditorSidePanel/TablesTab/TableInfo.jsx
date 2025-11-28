@@ -322,6 +322,7 @@ export default function TableInfo({ data }) {
                     notNull: false,
                     increment: false,
                     comment: "",
+                    displayName: "",
                   },
                 ],
               });

@@ -13,7 +13,7 @@ import { tableFieldHeight, tableHeaderHeight } from "../data/constants";
  * @param {number} zoom - Zoom level (used to scale vertical spacing).
  * @returns {string} SVG path "d" attribute string.
  */
-export function calcPath(r, tableWidth = 200, zoom = 1) {
+export function calcPath(r, tableWidth = 200, zoom = 1, rowHeight = tableFieldHeight) {
   if (!r) {
     return "";
   }
@@ -22,15 +22,15 @@ export function calcPath(r, tableWidth = 200, zoom = 1) {
   let x1 = r.startTable.x;
   let y1 =
     r.startTable.y +
-    r.startFieldIndex * tableFieldHeight +
+    r.startFieldIndex * rowHeight +
     tableHeaderHeight +
-    tableFieldHeight / 2;
+    rowHeight / 2;
   let x2 = r.endTable.x;
   let y2 =
     r.endTable.y +
-    r.endFieldIndex * tableFieldHeight +
+    r.endFieldIndex * rowHeight +
     tableHeaderHeight +
-    tableFieldHeight / 2;
+    rowHeight / 2;
 
   let radius = 10 * zoom;
   const midX = (x2 + x1 + width) / 2;

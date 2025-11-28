@@ -36,6 +36,7 @@ export default function DiagramContextProvider({ children }) {
           notNull: true,
           increment: true,
           comment: "",
+          displayName: "",
           id: nanoid(),
         },
       ],

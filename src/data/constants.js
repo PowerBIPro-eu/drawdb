@@ -21,6 +21,7 @@ export const tableWidth = 220;
 export const gridSize = 24;
 export const gridCircleRadius = 0.85;
 export const tableFieldHeight = 36;
+export const tableFieldHeightDetailed = 54;
 export const tableColorStripHeight = 7;
 export const pngExportPixelRatio = 4;
 export const minAreaSize = 120;

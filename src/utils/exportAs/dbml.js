@@ -91,11 +91,17 @@ function processComment(comment) {
 }
 
 function columnComment(field) {
-  if (!field.comment || field.comment.trim() === "") {
+  let comment = field.comment || "";
+  if (field.displayName && field.displayName.trim() !== "") {
+    const label = `label: ${field.displayName}`;
+    comment = comment ? `${label}\n${comment}` : label;
+  }
+
+  if (!comment || comment.trim() === "") {
     return "";
   }
 
-  return `note: ${processComment(field.comment)}`;
+  return `note: ${processComment(comment)}`;
 }
 
 function processType(type) {

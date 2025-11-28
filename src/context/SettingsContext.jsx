@@ -13,6 +13,7 @@ const defaultSettings = {
   showRelationshipLabels: true,
   tableWidth: tableWidth,
   showDebugCoordinates: false,
+  showDetailedView: false,
 };
 
 export const SettingsContext = createContext(defaultSettings);

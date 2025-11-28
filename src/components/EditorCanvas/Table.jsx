@@ -3,6 +3,7 @@ import {
   Tab,
   ObjectType,
   tableFieldHeight,
+  tableFieldHeightDetailed,
   tableHeaderHeight,
   tableColorStripHeight,
 } from "../../data/constants";
@@ -54,7 +55,12 @@ export default function Table({
     [settings.mode],
   );
 
-  const height = getTableHeight(tableData);
+  const width = tableData.width ?? settings.tableWidth;
+  const rowHeight = settings.showDetailedView
+    ? tableFieldHeightDetailed
+    : tableFieldHeight;
+
+  const height = getTableHeight(tableData, rowHeight);
 
   const isSelected = useMemo(() => {
     return (
@@ -133,8 +139,6 @@ export default function Table({
         .scrollIntoView({ behavior: "smooth" });
     }
   };
-
-  const width = tableData.width ?? settings.tableWidth;
 
   const handleResize = () => {
     setTableResize({ id: tableData.id, dir: "right" });
@@ -390,7 +394,8 @@ export default function Table({
           index === tableData.fields.length - 1
             ? ""
             : "border-b border-gray-400"
-        } group h-[36px] px-2 py-1 flex justify-between items-center gap-1 w-full overflow-hidden`}
+        } group px-2 py-1 flex justify-between items-center gap-1 w-full overflow-hidden`}
+        style={{ height: `${rowHeight}px` }}
         onPointerEnter={(e) => {
           if (!e.isPrimary) return;
 
@@ -433,23 +438,36 @@ export default function Table({
                 startX: tableData.x + 15,
                 startY:
                   tableData.y +
-                  index * tableFieldHeight +
+                  index * rowHeight +
                   tableHeaderHeight +
                   tableColorStripHeight +
-                  12,
+                  rowHeight / 2,
                 endX: tableData.x + 15,
                 endY:
                   tableData.y +
-                  index * tableFieldHeight +
+                  index * rowHeight +
                   tableHeaderHeight +
                   tableColorStripHeight +
-                  12,
+                  rowHeight / 2,
               }));
             }}
           />
-          <span className="overflow-hidden text-ellipsis whitespace-nowrap">
-            {fieldData.name}
-          </span>
+          <div className="flex flex-col overflow-hidden">
+            {settings.showDetailedView && fieldData.displayName ? (
+              <>
+                <span className="overflow-hidden text-ellipsis whitespace-nowrap">
+                  {fieldData.displayName}
+                </span>
+                <span className="text-xs text-gray-500 overflow-hidden text-ellipsis whitespace-nowrap">
+                  {fieldData.name}
+                </span>
+              </>
+            ) : (
+              <span className="overflow-hidden text-ellipsis whitespace-nowrap">
+                {fieldData.name}
+              </span>
+            )}
+          </div>
         </div>
         <div className="text-zinc-400">
           {hoveredField === index ? (
