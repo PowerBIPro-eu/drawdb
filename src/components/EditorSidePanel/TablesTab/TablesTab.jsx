@@ -1,20 +1,35 @@
 import { Collapse, Button } from "@douyinfe/semi-ui";
-import { IconEyeOpened, IconEyeClosed } from "@douyinfe/semi-icons";
-import { IconPlus } from "@douyinfe/semi-icons";
+import {
+  IconEyeOpened,
+  IconEyeClosed,
+  IconPlus,
+  IconSearch,
+} from "@douyinfe/semi-icons";
 import {
   useSelect,
   useDiagram,
   useSaveState,
   useLayout,
   useUndoRedo,
+  useTransform,
+  useSettings,
 } from "../../../hooks";
-import { Action, ObjectType, State } from "../../../data/constants";
+import {
+  Action,
+  ObjectType,
+  State,
+  tableFieldHeight,
+  tableHeaderHeight,
+  tableFieldHeightDetailed,
+  tableHeaderHeightDetailed,
+} from "../../../data/constants";
 import { useTranslation } from "react-i18next";
 import { DragHandle } from "../../SortableList/DragHandle";
 import { SortableList } from "../../SortableList/SortableList";
 import SearchBar from "./SearchBar";
 import Empty from "../Empty";
 import TableInfo from "./TableInfo";
+import { getTableHeight } from "../../../utils/utils";
 
 export default function TablesTab() {
   const { tables, addTable, setTables } = useDiagram();
@@ -74,9 +89,12 @@ export default function TablesTab() {
 
 function TableListItem({ table }) {
   const { layout } = useLayout();
-  const { updateTable } = useDiagram();
+  const { updateTable, relationships } = useDiagram();
   const { setUndoStack, setRedoStack } = useUndoRedo();
   const { t } = useTranslation();
+  const { setTransform } = useTransform();
+  const { settings } = useSettings();
+  const { setSelectedElement } = useSelect();
 
   const toggleTableVisibility = (e) => {
     e.stopPropagation();
@@ -99,6 +117,36 @@ function TableListItem({ table }) {
     updateTable(table.id, { hidden: !table.hidden });
   };
 
+  const locateTable = (e) => {
+    e.stopPropagation();
+    const width = table.width ?? settings.tableWidth;
+    const rowHeight = settings.showDetailedView
+      ? tableFieldHeightDetailed
+      : tableFieldHeight;
+    const headerHeight = settings.showDetailedView
+      ? tableHeaderHeightDetailed
+      : tableHeaderHeight;
+    const height = getTableHeight(
+      table,
+      relationships,
+      rowHeight,
+      headerHeight,
+    );
+
+    setTransform((prev) => ({
+      ...prev,
+      pan: {
+        x: table.x + width / 2,
+        y: table.y + height / 2,
+      },
+    }));
+    setSelectedElement((prev) => ({
+      ...prev,
+      element: ObjectType.TABLE,
+      id: table.id,
+    }));
+  };
+
   return (
     <div id={`scroll_table_${table.id}`}>
       <Collapse.Panel
@@ -111,6 +159,14 @@ function TableListItem({ table }) {
                 {table.name}
               </div>
             </div>
+            <Button
+              size="small"
+              theme="borderless"
+              type="tertiary"
+              onClick={locateTable}
+              icon={<IconSearch />}
+              className="me-2"
+            />
             <Button
               size="small"
               theme="borderless"
