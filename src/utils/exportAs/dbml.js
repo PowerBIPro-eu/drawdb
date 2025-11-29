@@ -70,6 +70,9 @@ function cardinality(rel) {
     case i18n.t(Cardinality.MANY_TO_ONE):
     case Cardinality.MANY_TO_ONE:
       return ">";
+    case i18n.t(Cardinality.MANY_TO_MANY):
+    case Cardinality.MANY_TO_MANY:
+      return "<>";
   }
 }
 

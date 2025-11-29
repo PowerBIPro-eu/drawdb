@@ -96,6 +96,11 @@ export default function Relationship({ data }) {
       startType = "one";
       endType = "one";
       break;
+    case t(Cardinality.MANY_TO_MANY):
+    case Cardinality.MANY_TO_MANY:
+      startType = "many";
+      endType = "many";
+      break;
     default:
       break;
   }

@@ -148,6 +148,10 @@ export function fromDBML(src) {
         relationship.cardinality = Cardinality.ONE_TO_ONE;
       }
 
+      if (startRelation === "*" && endRelation === "*") {
+        relationship.cardinality = Cardinality.MANY_TO_MANY;
+      }
+
       relationships.push(relationship);
     }
   }

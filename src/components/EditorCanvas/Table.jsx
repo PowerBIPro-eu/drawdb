@@ -191,6 +191,7 @@ export default function Table({
       return isStart ? "1:N" : "N:1";
     if (r.cardinality === Cardinality.MANY_TO_ONE)
       return isStart ? "N:1" : "1:N";
+    if (r.cardinality === Cardinality.MANY_TO_MANY) return "N:N";
     return "";
   };
 
@@ -198,6 +199,7 @@ export default function Table({
     if (label === "N:1") return "Lookups";
     if (label === "1:N") return "Related";
     if (label === "Recursive") return "Recursive";
+    if (label === "N:N") return "Many to many";
     return label;
   };
 
