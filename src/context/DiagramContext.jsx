@@ -115,6 +115,35 @@ export default function DiagramContextProvider({ children }) {
     );
   };
 
+  const updateTables = (updates, addToHistory = true) => {
+    if (addToHistory) {
+      const undoData = updates.map((u) => {
+        const table = tables.find((t) => t.id === u.id);
+        return { id: u.id, x: table.x, y: table.y };
+      });
+
+      setUndoStack((prev) => [
+        ...prev,
+        {
+          action: Action.EDIT,
+          element: ObjectType.TABLE,
+          component: "bulk_move",
+          undo: undoData,
+          redo: updates,
+          message: t("move_tables"),
+        },
+      ]);
+      setRedoStack([]);
+    }
+
+    setTables((prev) =>
+      prev.map((t) => {
+        const update = updates.find((u) => u.id === t.id);
+        return update ? { ...t, ...update } : t;
+      })
+    );
+  };
+
   const updateField = (tid, fid, updatedValues) => {
     setTables((prev) =>
       prev.map((table) => {
@@ -239,6 +268,7 @@ export default function DiagramContextProvider({ children }) {
         setTables,
         addTable,
         updateTable,
+        updateTables,
         updateField,
         deleteField,
         deleteTable,

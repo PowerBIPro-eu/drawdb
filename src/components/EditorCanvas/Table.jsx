@@ -21,6 +21,7 @@ import {
   IconChevronDown,
   IconEyeOpened,
   IconEyeClosed,
+  IconAlignCenter,
 } from "@douyinfe/semi-icons";
 import {
   BuildingMultiple24Regular,
@@ -35,6 +36,7 @@ import { isRtl } from "../../i18n/utils/rtl";
 import i18n from "../../i18n/i18n";
 import { getTableHeight, getVisibleFields } from "../../utils/utils";
 import { useHover } from "usehooks-ts";
+import { calculateLayoutNeighbors } from "../../utils/layoutNeighbors";
 
 export default function Table({
   tableData,
@@ -50,7 +52,7 @@ export default function Table({
   const [hoveredField, setHoveredField] = useState(null);
   const { database, relationships, setRelationships, tables } = useDiagram();
   const { layout } = useLayout();
-  const { deleteTable, deleteField, updateTable } = useDiagram();
+  const { deleteTable, deleteField, updateTable, updateTables } = useDiagram();
   const { settings } = useSettings();
   const { t } = useTranslation();
   const {
@@ -229,6 +231,18 @@ export default function Table({
         id: r.id,
         open: true,
       }));
+    }
+  };
+
+  const handleLayoutNeighbors = () => {
+    const updates = calculateLayoutNeighbors(
+      tableData,
+      tables,
+      relationships,
+      settings
+    );
+    if (updates.length > 0) {
+      updateTables(updates);
     }
   };
 
@@ -511,6 +525,15 @@ export default function Table({
                             </Collapse>
                           </div>
                         )}
+                        <Button
+                          icon={<IconAlignCenter />}
+                          block
+                          style={{ marginTop: "8px" }}
+                          onClick={handleLayoutNeighbors}
+                          disabled={layout.readOnly}
+                        >
+                          {t("layout_neighbors") || "Layout Neighbors"}
+                        </Button>
                         <Button
                           icon={<IconDeleteStroked />}
                           type="danger"
