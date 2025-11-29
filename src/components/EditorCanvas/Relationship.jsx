@@ -11,13 +11,14 @@ import {
 import { calcPath } from "../../utils/calcPath";
 import { useDiagram, useSettings, useLayout, useSelect } from "../../hooks";
 import { useTranslation } from "react-i18next";
-import { SideSheet } from "@douyinfe/semi-ui";
+import { SideSheet, Popover, Checkbox, Button, Tag } from "@douyinfe/semi-ui";
+import { IconEdit } from "@douyinfe/semi-icons";
 import RelationshipInfo from "../EditorSidePanel/RelationshipsTab/RelationshipInfo";
 import { getVisibleFields } from "../../utils/utils";
 
 export default function Relationship({ data }) {
   const { settings } = useSettings();
-  const { tables, relationships } = useDiagram();
+  const { tables, relationships, updateRelationship } = useDiagram();
   const { layout } = useLayout();
   const { selectedElement, setSelectedElement } = useSelect();
   const { t } = useTranslation();
@@ -133,40 +134,193 @@ export default function Relationship({ data }) {
 
   if (!pathValues) return null;
 
+  const startTable = tables.find((t) => t.id === data.startTableId);
+  const endTable = tables.find((t) => t.id === data.endTableId);
+  const startField = startTable?.fields.find((f) => f.id === data.startFieldId);
+  const endField = endTable?.fields.find((f) => f.id === data.endFieldId);
+
+  const popoverContent = (
+    <div className="p-3 popover-theme" style={{ minWidth: "320px" }}>
+      <div className="font-semibold mb-3 border-b border-gray-200 pb-2 break-all">
+        {data.name}
+      </div>
+      <div className="flex items-center justify-between gap-2 mb-3">
+        {/* Start Side */}
+        <div
+          className="flex flex-col items-start flex-1 overflow-hidden"
+          style={{ maxWidth: "40%" }}
+        >
+          <div
+            className="font-bold text-sm truncate w-full"
+            title={startTable?.displayName || startTable?.name}
+          >
+            {startTable?.displayName || startTable?.name}
+          </div>
+          <div
+            className="text-xs text-gray-500 truncate w-full mb-2"
+            title={startTable?.name}
+          >
+            {startTable?.name}
+          </div>
+          <div className="text-xs font-semibold text-gray-600 truncate w-full">
+            {t("column") || "Column"}:
+          </div>
+          <div
+            className="text-xs truncate w-full"
+            title={startField?.displayName || startField?.name}
+          >
+            {startField?.displayName || startField?.name}
+          </div>
+          <div
+            className="text-xs text-gray-400 truncate w-full"
+            title={startField?.name}
+          >
+            {startField?.name}
+          </div>
+        </div>
+
+        {/* Middle Indicators */}
+        <div className="flex flex-col items-center justify-center px-1">
+          <div className="flex items-center gap-1">
+            <Tag
+              style={{
+                backgroundColor: "var(--semi-color-primary)",
+                color: "white",
+              }}
+              size="small"
+            >
+              {cardinalityStart}
+            </Tag>
+            <span className="text-gray-300">-</span>
+            <Tag
+              style={{
+                backgroundColor: "var(--semi-color-primary)",
+                color: "white",
+              }}
+              size="small"
+            >
+              {cardinalityEnd}
+            </Tag>
+          </div>
+        </div>
+
+        {/* End Side */}
+        <div
+          className="flex flex-col items-end flex-1 overflow-hidden text-right"
+          style={{ maxWidth: "40%" }}
+        >
+          <div
+            className="font-bold text-sm truncate w-full"
+            title={endTable?.displayName || endTable?.name}
+          >
+            {endTable?.displayName || endTable?.name}
+          </div>
+          <div
+            className="text-xs text-gray-500 truncate w-full mb-2"
+            title={endTable?.name}
+          >
+            {endTable?.name}
+          </div>
+          <div className="text-xs font-semibold text-gray-600 truncate w-full">
+            {t("column") || "Column"}:
+          </div>
+          <div
+            className="text-xs truncate w-full"
+            title={endField?.displayName || endField?.name}
+          >
+            {endField?.displayName || endField?.name}
+          </div>
+          <div
+            className="text-xs text-gray-400 truncate w-full"
+            title={endField?.name}
+          >
+            {endField?.name}
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-200">
+        <Checkbox
+          checked={!!data.subtle}
+          onChange={(e) =>
+            updateRelationship(data.id, { subtle: e.target.checked })
+          }
+        >
+          {t("subtle") || "Subtle"}
+        </Checkbox>
+        <Button
+          size="small"
+          theme="borderless"
+          icon={<IconEdit />}
+          onClick={edit}
+        >
+          {t("edit")}
+        </Button>
+      </div>
+    </div>
+  );
+
   return (
     <>
-      <g className="select-none group" onDoubleClick={edit}>
-        {/* invisible wider path for better hover ux */}
-        <path
-          d={calcPath(pathValues, settings.tableWidth, 1, rowHeight, headerHeight)}
-          fill="none"
-          stroke="transparent"
-          strokeWidth={12}
-          cursor="pointer"
-        />
-        <path
-          ref={pathRef}
-          d={calcPath(pathValues, settings.tableWidth, 1, rowHeight, headerHeight)}
-          className="relationship-path"
-          fill="none"
-          cursor="pointer"
-        />
-        {/* Relationship name label removed as per request */}
-        {pathRef.current && settings.showCardinality && (
-          <>
-            <CardinalityLabel
-              x={cardinalityStartX}
-              y={cardinalityStartY}
-              text={cardinalityStart}
-            />
-            <CardinalityLabel
-              x={cardinalityEndX}
-              y={cardinalityEndY}
-              text={cardinalityEnd}
-            />
-          </>
-        )}
-      </g>
+      <Popover
+        content={popoverContent}
+        trigger="hover"
+        position="top"
+        showArrow
+        mouseEnterDelay={200}
+      >
+        <g
+          className={`select-none group ${
+            data.subtle
+              ? "opacity-20 hover:opacity-100 transition-opacity"
+              : ""
+          }`}
+          onDoubleClick={edit}
+        >
+          {/* invisible wider path for better hover ux */}
+          <path
+            d={calcPath(
+              pathValues,
+              settings.tableWidth,
+              1,
+              rowHeight,
+              headerHeight
+            )}
+            fill="none"
+            stroke="transparent"
+            strokeWidth={12}
+            cursor="pointer"
+          />
+          <path
+            ref={pathRef}
+            d={calcPath(
+              pathValues,
+              settings.tableWidth,
+              1,
+              rowHeight,
+              headerHeight
+            )}
+            className="relationship-path"
+            fill="none"
+            cursor="pointer"
+            strokeDasharray={data.subtle ? "5,5" : "none"}
+          />
+          {/* Relationship name label removed as per request */}
+          {pathRef.current && settings.showCardinality && (
+            <>
+              <CardinalityLabel
+                x={cardinalityStartX}
+                y={cardinalityStartY}
+                text={cardinalityStart}
+              />
+              <CardinalityLabel
+                x={cardinalityEndX}
+                y={cardinalityEndY}
+                text={cardinalityEnd}
+              />
+            </>
+          )}
+        </g>
+      </Popover>
       <SideSheet
         title={t("edit")}
         size="small"
