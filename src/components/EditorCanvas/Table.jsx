@@ -25,6 +25,8 @@ import {
 } from "@douyinfe/semi-icons";
 import {
   BuildingMultiple24Regular,
+  CircleFilled,
+  CircleHintRegular,
   People24Regular,
 } from "@fluentui/react-icons";
 import { Popover, Tag, Button, SideSheet, Collapse } from "@douyinfe/semi-ui";
@@ -52,7 +54,7 @@ export default function Table({
   const [hoveredField, setHoveredField] = useState(null);
   const { database, relationships, setRelationships, tables } = useDiagram();
   const { layout } = useLayout();
-  const { deleteTable, deleteField, updateTable, updateTables } = useDiagram();
+  const { deleteTable, deleteField, updateTable, updateTables, updateRelationship } = useDiagram();
   const { settings } = useSettings();
   const { t } = useTranslation();
   const {
@@ -500,22 +502,36 @@ export default function Table({
                                               </span>
                                             )}
                                           </div>
-                                          <Button
-                                            icon={
-                                              r.hidden ? (
-                                                <IconEyeClosed />
-                                              ) : (
-                                                <IconEyeOpened />
-                                              )
-                                            }
-                                            type="tertiary"
-                                            theme="borderless"
-                                            size="small"
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              toggleRelationshipVisibility(r.id);
-                                            }}
-                                          />
+                                          <div className="flex items-center">
+                                            <Button
+                                              icon={r.subtle ? <CircleHintRegular /> : <CircleFilled />}
+                                              type="tertiary"
+                                              theme="borderless"
+                                              size="small"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                updateRelationship(r.id, { subtle: !r.subtle });
+                                              }}
+                                              title="Relationship Line Appearance"
+                                            />
+                                            <Button
+                                              icon={
+                                                r.hidden ? (
+                                                  <IconEyeClosed />
+                                                ) : (
+                                                  <IconEyeOpened />
+                                                )
+                                              }
+                                              type="tertiary"
+                                              theme="borderless"
+                                              size="small"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                toggleRelationshipVisibility(r.id);
+                                              }}
+                                              title="Relationship Line Visibility"
+                                            />
+                                          </div>
                                         </div>
                                       );
                                     })}
