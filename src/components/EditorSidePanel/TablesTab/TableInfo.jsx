@@ -11,7 +11,15 @@ import {
   Tag,
 } from "@douyinfe/semi-ui";
 import ColorPicker from "../ColorPicker";
-import { IconDeleteStroked, IconEyeOpened, IconEyeClosed } from "@douyinfe/semi-icons";
+import {
+  IconDeleteStroked,
+  IconEyeOpened,
+  IconEyeClosed,
+  IconArrowUp,
+  IconArrowDown,
+  IconArrowLeft,
+  IconArrowRight,
+} from "@douyinfe/semi-icons";
 import {
   useDiagram,
   useLayout,
@@ -19,12 +27,23 @@ import {
   useUndoRedo,
   useSettings,
 } from "../../../hooks";
-import { Action, ObjectType, State, DB, Cardinality } from "../../../data/constants";
+import {
+  Action,
+  ObjectType,
+  State,
+  DB,
+  Cardinality,
+  tableFieldHeight,
+  tableFieldHeightDetailed,
+  tableHeaderHeight,
+  tableHeaderHeightDetailed,
+} from "../../../data/constants";
 import TableField from "./TableField";
 import IndexDetails from "./IndexDetails";
 import { useTranslation } from "react-i18next";
 import { SortableList } from "../../SortableList/SortableList";
 import { nanoid } from "nanoid";
+import { getTableHeight } from "../../../utils/utils";
 
 export default function TableInfo({ data }) {
   const { tables, database, relationships, setRelationships } = useDiagram();
@@ -133,6 +152,80 @@ export default function TableInfo({ data }) {
 
     return groups;
   })();
+
+  const [relocateTargetId, setRelocateTargetId] = useState("");
+  const [relocateActiveKey, setRelocateActiveKey] = useState("");
+
+  const handleRelocate = (direction) => {
+    if (!relocateTargetId) return;
+    const targetTable = tables.find((t) => t.id === relocateTargetId);
+    if (!targetTable) return;
+
+    const gap = 50;
+    let newX = data.x;
+    let newY = data.y;
+
+    const rowHeight = settings.showDetailedView
+      ? tableFieldHeightDetailed
+      : tableFieldHeight;
+    const headerHeight = settings.showDetailedView
+      ? tableHeaderHeightDetailed
+      : tableHeaderHeight;
+
+    const targetWidth = targetTable.width ?? settings.tableWidth;
+    const targetHeight = getTableHeight(
+      targetTable,
+      relationships,
+      rowHeight,
+      headerHeight
+    );
+
+    const myWidth = data.width ?? settings.tableWidth;
+    const myHeight = getTableHeight(
+      data,
+      relationships,
+      rowHeight,
+      headerHeight
+    );
+
+    switch (direction) {
+      case "left":
+        newX = targetTable.x - myWidth - gap;
+        newY = targetTable.y;
+        break;
+      case "right":
+        newX = targetTable.x + targetWidth + gap;
+        newY = targetTable.y;
+        break;
+      case "up":
+        newX = targetTable.x;
+        newY = targetTable.y - myHeight - gap;
+        break;
+      case "down":
+        newX = targetTable.x;
+        newY = targetTable.y + targetHeight + gap;
+        break;
+      default:
+        break;
+    }
+
+    setUndoStack((prev) => [
+      ...prev,
+      {
+        action: Action.MOVE,
+        element: ObjectType.TABLE,
+        id: data.id,
+        x: data.x,
+        y: data.y,
+        message: t("move_element", {
+          name: data.name,
+          coords: `${Math.round(newX)}, ${Math.round(newY)}`,
+        }),
+      },
+    ]);
+    setRedoStack([]);
+    updateTable(data.id, { x: newX, y: newY });
+  };
 
   return (
     <div>
@@ -426,6 +519,72 @@ export default function TableInfo({ data }) {
           </Collapse>
         </Card>
       )}
+
+      <Card
+        bodyStyle={{ padding: "4px" }}
+        style={{ marginTop: "12px", marginBottom: "12px" }}
+        headerLine={false}
+      >
+        <Collapse
+          activeKey={relocateActiveKey}
+          keepDOM={false}
+          lazyRender
+          onChange={(itemKey) => setRelocateActiveKey(itemKey)}
+          accordion
+        >
+          <Collapse.Panel header={t("relocate") || "Relocate"} itemKey="1">
+            <div className="p-2">
+              <div className="mb-2 text-sm font-semibold">Target Table:</div>
+              <Select
+                className="w-full mb-3"
+                placeholder="Select a table"
+                value={relocateTargetId}
+                filter
+                onChange={(v) => setRelocateTargetId(v)}
+                optionList={tables
+                  .filter((t) => t.id !== data.id)
+                  .map((t) => ({
+                    label: t.displayName || t.name,
+                    value: t.id,
+                  }))}
+              />
+              <div className="grid grid-cols-3 gap-2 justify-items-center">
+                <div />
+                <Button
+                  icon={<IconArrowUp />}
+                  onClick={() => handleRelocate("up")}
+                  disabled={!relocateTargetId || layout.readOnly}
+                  title="Above"
+                />
+                <div />
+                <Button
+                  icon={<IconArrowLeft />}
+                  onClick={() => handleRelocate("left")}
+                  disabled={!relocateTargetId || layout.readOnly}
+                  title="Left of"
+                />
+                <div className="flex items-center justify-center text-xs text-gray-400">
+                  Target
+                </div>
+                <Button
+                  icon={<IconArrowRight />}
+                  onClick={() => handleRelocate("right")}
+                  disabled={!relocateTargetId || layout.readOnly}
+                  title="Right of"
+                />
+                <div />
+                <Button
+                  icon={<IconArrowDown />}
+                  onClick={() => handleRelocate("down")}
+                  disabled={!relocateTargetId || layout.readOnly}
+                  title="Below"
+                />
+                <div />
+              </div>
+            </div>
+          </Collapse.Panel>
+        </Collapse>
+      </Card>
 
       {database === DB.POSTGRES && (
         <div className="mb-2">
