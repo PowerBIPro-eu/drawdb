@@ -57,6 +57,8 @@ export function updateFromDBML(dbml, currentDiagram) {
         ...newRel,
         id: oldRel.id,
         hidden: oldRel.hidden,
+        subtle: oldRel.subtle,
+        manyLabel: oldRel.manyLabel,
         startTableId: resolvedStartTableId,
         endTableId: resolvedEndTableId,
         startFieldId: resolvedStartFieldId,
