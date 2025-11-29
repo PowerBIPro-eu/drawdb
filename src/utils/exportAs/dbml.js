@@ -152,39 +152,93 @@ export function toDBML(diagram) {
     return `Ref ${quoteIdentifier(rel.name)} {\n\t${quoteIdentifier(startTableName)}.${quoteIdentifier(startFieldName)} ${cardinality(rel)} ${quoteIdentifier(endTableName)}.${quoteIdentifier(endFieldName)} [ delete: ${rel.deleteConstraint.toLowerCase()}, update: ${rel.updateConstraint.toLowerCase()} ]\n}`;
   };
 
-  let enumDefinitions = "";
+  // Map to store unique enum definitions
+  // Key: Enum Name, Value: { values: string[], isGlobal: boolean }
+  const enumsToGenerate = new Map();
+  // Map to quickly find if a set of values already has an enum name
+  // Key: JSON.stringify(values), Value: Enum Name
+  const valueHashToName = new Map();
 
-  for (const table of diagram.tables) {
-    for (const field of table.fields) {
+  // 1. Register existing Global Enums first (preserve their names)
+  if (diagram.enums) {
+    diagram.enums.forEach((en) => {
+      enumsToGenerate.set(en.name, { values: en.values, isGlobal: true });
+      valueHashToName.set(JSON.stringify(en.values), en.name);
+    });
+  }
+
+  // 2. Scan tables for ad-hoc enums (fields with type ENUM/SET)
+  diagram.tables.forEach((table) => {
+    table.fields.forEach((field) => {
       if (
         (field.type === "ENUM" || field.type === "SET") &&
         Array.isArray(field.values)
       ) {
-        enumDefinitions += `enum ${quoteIdentifier(`${field.name}_${field.values.join("_")}_t`)} {\n\t${field.values.map((v) => quoteIdentifier(v)).join("\n\t")}\n}\n\n`;
-      }
-    }
-  }
+        const hash = JSON.stringify(field.values);
 
-  return `${diagram.enums
+        // If we haven't seen this set of values before, create a new Enum definition
+        if (!valueHashToName.has(hash)) {
+          let baseName = `${field.name}_enum`;
+          let finalName = baseName;
+
+          // Collision check: Does this name exist?
+          if (enumsToGenerate.has(finalName)) {
+            // Name taken by a DIFFERENT set of values (since hash check failed)
+            // Try scoping with table name
+            finalName = `${table.name}_${field.name}_enum`;
+
+            // If still taken (rare), append index
+            let counter = 1;
+            while (enumsToGenerate.has(finalName)) {
+              finalName = `${table.name}_${field.name}_${counter}_enum`;
+              counter++;
+            }
+          }
+
+          enumsToGenerate.set(finalName, {
+            values: field.values,
+            isGlobal: false,
+          });
+          valueHashToName.set(hash, finalName);
+        }
+      }
+    });
+  });
+
+  // 3. Generate Enum Definitions String
+  // We only generate definitions for enums that are NOT global (ad-hoc ones),
+  // OR we can generate all of them here if we remove the separate diagram.enums map below.
+  // The original code mapped diagram.enums separately. Let's unify it.
+  
+  const allEnumDefinitions = Array.from(enumsToGenerate.entries())
     .map(
-      (en) =>
-        `enum ${quoteIdentifier(en.name)} {\n${en.values.map((v) => `\t${quoteIdentifier(v)}`).join("\n")}\n}\n\n`,
+      ([name, data]) =>
+        `enum ${quoteIdentifier(name)} {\n${data.values
+          .map((v) => `\t${quoteIdentifier(v)}`)
+          .join("\n")}\n}`,
     )
-    .join("\n\n")}${enumDefinitions}${diagram.tables
+    .join("\n\n");
+
+  return `${allEnumDefinitions}\n\n${diagram.tables
     .map(
       (table) =>
         `Table ${quoteIdentifier(table.name)} [headercolor: ${table.color}] {\n${table.fields
-          .map(
-            (field) =>
-              `\t${quoteIdentifier(field.name)} ${
-                field.type === "ENUM" || field.type === "SET"
-                  ? quoteIdentifier(`${field.name}_${field.values.join("_")}_t`)
-                  : processType(field.type)
-              }${fieldSize(
-                field,
-                diagram.database,
-              )}${columnSettings(field, diagram.database)}`,
-          )
+          .map((field) => {
+            let typeStr = processType(field.type);
+            if (
+              (field.type === "ENUM" || field.type === "SET") &&
+              Array.isArray(field.values)
+            ) {
+              const hash = JSON.stringify(field.values);
+              const enumName = valueHashToName.get(hash);
+              typeStr = quoteIdentifier(enumName);
+            }
+
+            return `\t${quoteIdentifier(field.name)} ${typeStr}${fieldSize(
+              field,
+              diagram.database,
+            )}${columnSettings(field, diagram.database)}`;
+          })
           .join("\n")}${
           table.indices.length > 0
             ? "\n\n\tindexes {\n" +

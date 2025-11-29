@@ -7,6 +7,7 @@ import {
   tableHeaderHeight,
   tableHeaderHeightDetailed,
   tableColorStripHeight,
+  Cardinality,
 } from "../../data/constants";
 import {
   IconEdit,
@@ -18,12 +19,14 @@ import {
   IconUnlock,
   IconChevronUp,
   IconChevronDown,
+  IconEyeOpened,
+  IconEyeClosed,
 } from "@douyinfe/semi-icons";
 import {
   BuildingMultiple24Regular,
   People24Regular,
 } from "@fluentui/react-icons";
-import { Popover, Tag, Button, SideSheet } from "@douyinfe/semi-ui";
+import { Popover, Tag, Button, SideSheet, Collapse } from "@douyinfe/semi-ui";
 import { useLayout, useSettings, useDiagram, useSelect } from "../../hooks";
 import TableInfo from "../EditorSidePanel/TablesTab/TableInfo";
 import { useTranslation } from "react-i18next";
@@ -45,7 +48,7 @@ export default function Table({
   const ref = useRef(null);
   const isHovered = useHover(ref);
   const [hoveredField, setHoveredField] = useState(null);
-  const { database, relationships } = useDiagram();
+  const { database, relationships, setRelationships, tables } = useDiagram();
   const { layout } = useLayout();
   const { deleteTable, deleteField, updateTable } = useDiagram();
   const { settings } = useSettings();
@@ -164,6 +167,69 @@ export default function Table({
   const handleResize = () => {
     setTableResize({ id: tableData.id, dir: "right" });
     setTableInitDimensions({ width: width });
+  };
+
+  const toggleRelationshipVisibility = (id) => {
+    setRelationships((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, hidden: !r.hidden } : r)),
+    );
+  };
+
+  const getCardinalityLabel = (r, currentId) => {
+    const isStart = r.startTableId === currentId;
+    if (r.cardinality === Cardinality.ONE_TO_ONE) return "1:1";
+    if (r.cardinality === Cardinality.ONE_TO_MANY)
+      return isStart ? "1:N" : "N:1";
+    if (r.cardinality === Cardinality.MANY_TO_ONE)
+      return isStart ? "N:1" : "1:N";
+    return "";
+  };
+
+  const getGroupTitle = (label) => {
+    if (label === "N:1") return "Lookups";
+    if (label === "1:N") return "Related";
+    if (label === "Recursive") return "Recursive";
+    return label;
+  };
+
+  const groupedRelationships = useMemo(() => {
+    const rels = relationships.filter(
+      (r) => r.startTableId === tableData.id || r.endTableId === tableData.id,
+    );
+
+    const groups = {};
+    rels.forEach((r) => {
+      let label;
+      if (r.startTableId === r.endTableId) {
+        label = "Recursive";
+      } else {
+        label = getCardinalityLabel(r, tableData.id);
+      }
+
+      if (!groups[label]) groups[label] = [];
+      groups[label].push(r);
+    });
+
+    return groups;
+  }, [relationships, tableData.id]);
+
+  const editRelationship = (r) => {
+    if (!layout.sidebar) {
+      setSelectedElement((prev) => ({
+        ...prev,
+        element: ObjectType.RELATIONSHIP,
+        id: r.id,
+        open: true,
+      }));
+    } else {
+      setSelectedElement((prev) => ({
+        ...prev,
+        currentTab: Tab.RELATIONSHIPS,
+        element: ObjectType.RELATIONSHIP,
+        id: r.id,
+        open: true,
+      }));
+    }
   };
 
   if (tableData.hidden) return null;
@@ -313,6 +379,138 @@ export default function Table({
                             </div>
                           )}
                         </div>
+                        {Object.keys(groupedRelationships).length > 0 && (
+                          <div className="mb-2">
+                            <strong>{t("relationships")}:</strong>
+                            <Collapse accordion className="mt-2">
+                              {Object.entries(groupedRelationships).map(
+                                ([label, rels]) => (
+                                  <Collapse.Panel
+                                    key={label}
+                                    header={
+                                      <div className="flex items-center gap-2">
+                                        <span>{getGroupTitle(label)}</span>
+                                        {label !== "Recursive" && (
+                                          <span className="text-gray-400 text-sm">
+                                            ({label})
+                                          </span>
+                                        )}
+                                        <Tag
+                                          size="small"
+                                          type="solid"
+                                          style={{
+                                            borderRadius: "10px",
+                                            backgroundColor:
+                                              settings.mode === "light"
+                                                ? "#e6e8ea"
+                                                : "#3f3f46",
+                                            color:
+                                              settings.mode === "light"
+                                                ? "#1f2937"
+                                                : "#f3f4f6",
+                                          }}
+                                        >
+                                          {rels.length}
+                                        </Tag>
+                                      </div>
+                                    }
+                                    itemKey={label}
+                                  >
+                                    {rels.map((r) => {
+                                      const otherTableId =
+                                        r.startTableId === tableData.id
+                                          ? r.endTableId
+                                          : r.startTableId;
+                                      const otherTable = tables.find(
+                                        (t) => t.id === otherTableId,
+                                      );
+
+                                      const isLookup = label === "N:1";
+                                      const isRecursive = label === "Recursive";
+                                      
+                                      let localFieldId =
+                                        r.startTableId === tableData.id
+                                          ? r.startFieldId
+                                          : r.endFieldId;
+
+                                      if (isRecursive) {
+                                        const startField = tableData.fields.find(
+                                          (f) => f.id === r.startFieldId,
+                                        );
+                                        if (startField?.primary) {
+                                          localFieldId = r.endFieldId;
+                                        } else {
+                                          localFieldId = r.startFieldId;
+                                        }
+                                      }
+
+                                      const localField = tableData.fields.find(
+                                        (f) => f.id === localFieldId,
+                                      );
+                                      const localFieldIndex =
+                                        tableData.fields.findIndex(
+                                          (f) => f.id === localFieldId,
+                                        );
+
+                                      return (
+                                        <div
+                                          key={r.id}
+                                          className={`flex justify-between items-center py-1 border-b ${
+                                            settings.mode === "light"
+                                              ? "border-gray-200 hover:bg-gray-50"
+                                              : "border-zinc-700 hover:bg-zinc-800"
+                                          } cursor-pointer`}
+                                          onClick={() => editRelationship(r)}
+                                          onMouseEnter={() => {
+                                            if ((isLookup || isRecursive) && localFieldIndex !== -1) {
+                                              setHoveredField(localFieldIndex);
+                                            }
+                                          }}
+                                          onMouseLeave={() => {
+                                            if (isLookup || isRecursive) {
+                                              setHoveredField(null);
+                                            }
+                                          }}
+                                        >
+                                          <div
+                                            className="flex flex-col overflow-hidden"
+                                            title={otherTable?.name}
+                                          >
+                                            <span className="truncate font-semibold text-sm">
+                                              {otherTable?.displayName ||
+                                                otherTable?.name}
+                                            </span>
+                                            {(isLookup || isRecursive) && localField && (
+                                              <span className="text-xs text-gray-500 truncate">
+                                                via {localField.name}
+                                              </span>
+                                            )}
+                                          </div>
+                                          <Button
+                                            icon={
+                                              r.hidden ? (
+                                                <IconEyeClosed />
+                                              ) : (
+                                                <IconEyeOpened />
+                                              )
+                                            }
+                                            type="tertiary"
+                                            theme="borderless"
+                                            size="small"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              toggleRelationshipVisibility(r.id);
+                                            }}
+                                          />
+                                        </div>
+                                      );
+                                    })}
+                                  </Collapse.Panel>
+                                ),
+                              )}
+                            </Collapse>
+                          </div>
+                        )}
                         <Button
                           icon={<IconDeleteStroked />}
                           type="danger"
@@ -328,7 +526,7 @@ export default function Table({
                     position="rightTop"
                     showArrow
                     trigger="click"
-                    style={{ width: "200px", wordBreak: "break-word" }}
+                    style={{ width: "320px", wordBreak: "break-word" }}
                   >
                     <Button
                       icon={<IconMore />}

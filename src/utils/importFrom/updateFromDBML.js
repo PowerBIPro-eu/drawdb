@@ -43,12 +43,33 @@ export function updateFromDBML(dbml, currentDiagram) {
   });
 
   const mergedRelationships = newDiagram.relationships.map((newRel) => {
+    const resolvedStartTableId = tableIdMap[newRel.startTableId];
+    const resolvedEndTableId = tableIdMap[newRel.endTableId];
+    const resolvedStartFieldId = fieldIdMap[newRel.startFieldId];
+    const resolvedEndFieldId = fieldIdMap[newRel.endFieldId];
+
+    const oldRel = currentDiagram.relationships.find(
+      (r) => r.name === newRel.name,
+    );
+
+    if (oldRel) {
+      return {
+        ...newRel,
+        id: oldRel.id,
+        hidden: oldRel.hidden,
+        startTableId: resolvedStartTableId,
+        endTableId: resolvedEndTableId,
+        startFieldId: resolvedStartFieldId,
+        endFieldId: resolvedEndFieldId,
+      };
+    }
+
     return {
       ...newRel,
-      startTableId: tableIdMap[newRel.startTableId],
-      endTableId: tableIdMap[newRel.endTableId],
-      startFieldId: fieldIdMap[newRel.startFieldId],
-      endFieldId: fieldIdMap[newRel.endFieldId],
+      startTableId: resolvedStartTableId,
+      endTableId: resolvedEndTableId,
+      startFieldId: resolvedStartFieldId,
+      endFieldId: resolvedEndFieldId,
     };
   });
 

@@ -15,8 +15,6 @@ import { SideSheet } from "@douyinfe/semi-ui";
 import RelationshipInfo from "../EditorSidePanel/RelationshipsTab/RelationshipInfo";
 import { getVisibleFields } from "../../utils/utils";
 
-const labelFontSize = 16;
-
 export default function Relationship({ data }) {
   const { settings } = useSettings();
   const { tables, relationships } = useDiagram();
@@ -35,7 +33,13 @@ export default function Relationship({ data }) {
     const startTable = tables.find((t) => t.id === data.startTableId);
     const endTable = tables.find((t) => t.id === data.endTableId);
 
-    if (!startTable || !endTable || startTable.hidden || endTable.hidden)
+    if (
+      !startTable ||
+      !endTable ||
+      startTable.hidden ||
+      endTable.hidden ||
+      data.hidden
+    )
       return null;
 
     return {
@@ -59,7 +63,6 @@ export default function Relationship({ data }) {
   }, [tables, data, settings.tableWidth, relationships]);
 
   const pathRef = useRef();
-  const labelRef = useRef();
 
   let cardinalityStart = "1";
   let cardinalityEnd = "1";
@@ -89,20 +92,11 @@ export default function Relationship({ data }) {
   let cardinalityEndX = 0;
   let cardinalityStartY = 0;
   let cardinalityEndY = 0;
-  let labelX = 0;
-  let labelY = 0;
-
-  let labelWidth = labelRef.current?.getBBox().width ?? 0;
-  let labelHeight = labelRef.current?.getBBox().height ?? 0;
 
   const cardinalityOffset = 28;
 
   if (pathRef.current) {
     const pathLength = pathRef.current.getTotalLength();
-
-    const labelPoint = pathRef.current.getPointAtLength(pathLength / 2);
-    labelX = labelPoint.x - (labelWidth ?? 0) / 2;
-    labelY = labelPoint.y + (labelHeight ?? 0) / 2;
 
     const point1 = pathRef.current.getPointAtLength(cardinalityOffset);
     cardinalityStartX = point1.x;
@@ -157,19 +151,7 @@ export default function Relationship({ data }) {
           fill="none"
           cursor="pointer"
         />
-        {settings.showRelationshipLabels && (
-          <text
-            x={labelX}
-            y={labelY}
-            fill={settings.mode === "dark" ? "lightgrey" : "#333"}
-            fontSize={labelFontSize}
-            fontWeight={500}
-            ref={labelRef}
-            className="group-hover:fill-sky-600"
-          >
-            {data.name}
-          </text>
-        )}
+        {/* Relationship name label removed as per request */}
         {pathRef.current && settings.showCardinality && (
           <>
             <CardinalityLabel

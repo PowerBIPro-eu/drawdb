@@ -8,16 +8,18 @@ import {
   Select,
   RadioGroup,
   Radio,
+  List,
+  Tag,
 } from "@douyinfe/semi-ui";
 import ColorPicker from "../ColorPicker";
-import { IconDeleteStroked } from "@douyinfe/semi-icons";
+import { IconDeleteStroked, IconEyeOpened, IconEyeClosed } from "@douyinfe/semi-icons";
 import {
   useDiagram,
   useLayout,
   useSaveState,
   useUndoRedo,
 } from "../../../hooks";
-import { Action, ObjectType, State, DB } from "../../../data/constants";
+import { Action, ObjectType, State, DB, Cardinality } from "../../../data/constants";
 import TableField from "./TableField";
 import IndexDetails from "./IndexDetails";
 import { useTranslation } from "react-i18next";
@@ -25,9 +27,10 @@ import { SortableList } from "../../SortableList/SortableList";
 import { nanoid } from "nanoid";
 
 export default function TableInfo({ data }) {
-  const { tables, database } = useDiagram();
+  const { tables, database, relationships, setRelationships } = useDiagram();
   const { t } = useTranslation();
   const [indexActiveKey, setIndexActiveKey] = useState("");
+  const [relationshipActiveKey, setRelationshipActiveKey] = useState("");
   const { layout } = useLayout();
   const { deleteTable, updateTable, setTables } = useDiagram();
   const { setUndoStack, setRedoStack } = useUndoRedo();
@@ -80,6 +83,26 @@ export default function TableInfo({ data }) {
           })
           .flat()
       : [];
+
+  const tableRelationships = relationships.filter(
+    (r) => r.startTableId === data.id || r.endTableId === data.id,
+  );
+
+  const toggleRelationshipVisibility = (id) => {
+    setRelationships((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, hidden: !r.hidden } : r)),
+    );
+  };
+
+  const getCardinalityLabel = (r, currentId) => {
+    const isStart = r.startTableId === currentId;
+    if (r.cardinality === Cardinality.ONE_TO_ONE) return "1:1";
+    if (r.cardinality === Cardinality.ONE_TO_MANY)
+      return isStart ? "1:N" : "N:1";
+    if (r.cardinality === Cardinality.MANY_TO_ONE)
+      return isStart ? "N:1" : "1:N";
+    return "";
+  };
 
   return (
     <div>
@@ -199,6 +222,55 @@ export default function TableInfo({ data }) {
           />
         )}
       />
+
+      {tableRelationships.length > 0 && (
+        <Card
+          bodyStyle={{ padding: "4px" }}
+          style={{ marginTop: "12px", marginBottom: "12px" }}
+          headerLine={false}
+        >
+          <Collapse
+            activeKey={relationshipActiveKey}
+            keepDOM={false}
+            lazyRender
+            onChange={(itemKey) => setRelationshipActiveKey(itemKey)}
+            accordion
+          >
+            <Collapse.Panel header={t("relationships")} itemKey="1">
+              <List
+                dataSource={tableRelationships}
+                renderItem={(item) => {
+                  const otherTableId =
+                    item.startTableId === data.id
+                      ? item.endTableId
+                      : item.startTableId;
+                  const otherTable = tables.find((t) => t.id === otherTableId);
+                  const cardLabel = getCardinalityLabel(item, data.id);
+                  return (
+                    <List.Item className="flex justify-between items-center hover:bg-gray-100 p-2 rounded">
+                      <div className="truncate flex items-center gap-2" title={otherTable?.name}>
+                        <span className="font-semibold">{otherTable?.name}</span>
+                        <Tag size="small">{cardLabel}</Tag>
+                      </div>
+                      <Button
+                        icon={
+                          item.hidden ? <IconEyeClosed /> : <IconEyeOpened />
+                        }
+                        type="tertiary"
+                        theme="borderless"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleRelationshipVisibility(item.id);
+                        }}
+                      />
+                    </List.Item>
+                  );
+                }}
+              />
+            </Collapse.Panel>
+          </Collapse>
+        </Card>
+      )}
 
       {database === DB.POSTGRES && (
         <div className="mb-2">

@@ -12,8 +12,10 @@ export function fromDBML(src) {
   const enums = [];
   const relationships = [];
 
+  if (!ast || !ast.schemas) return { tables, enums, relationships };
+
   for (const schema of ast.schemas) {
-    for (const schemaEnum of schema.enums) {
+    for (const schemaEnum of schema.enums || []) {
       const parsedEnum = {};
 
       parsedEnum.name = schemaEnum.name;
@@ -22,7 +24,7 @@ export function fromDBML(src) {
       enums.push(parsedEnum);
     }
 
-    for (const table of schema.tables) {
+    for (const table of schema.tables || []) {
       let parsedTable = {};
       parsedTable.id = nanoid();
       parsedTable.name = table.name;
@@ -87,7 +89,7 @@ export function fromDBML(src) {
       tables.push(parsedTable);
     }
 
-    for (const ref of schema.refs) {
+    for (const ref of schema.refs || []) {
       const startTableName = ref.endpoints[0].tableName;
       const endTableName = ref.endpoints[1].tableName;
       const startFieldName = ref.endpoints[0].fieldNames[0];
