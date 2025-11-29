@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, useEffect } from "react";
+import { useMemo, useRef } from "react";
 import {
   Cardinality,
   ObjectType,
@@ -13,6 +13,7 @@ import { useDiagram, useSettings, useLayout, useSelect } from "../../hooks";
 import { useTranslation } from "react-i18next";
 import { SideSheet, Popover, Checkbox, Button, Tag } from "@douyinfe/semi-ui";
 import { IconEdit } from "@douyinfe/semi-icons";
+import { KeyFilled } from "@fluentui/react-icons";
 import RelationshipInfo from "../EditorSidePanel/RelationshipsTab/RelationshipInfo";
 import { getVisibleFields } from "../../utils/utils";
 
@@ -65,48 +66,62 @@ export default function Relationship({ data }) {
 
   const pathRef = useRef();
 
-  let cardinalityStart = "1";
-  let cardinalityEnd = "1";
+  let startType = "one";
+  let endType = "one";
 
   switch (data.cardinality) {
-    // the translated values are to ensure backwards compatibility
     case t(Cardinality.MANY_TO_ONE):
     case Cardinality.MANY_TO_ONE:
-      cardinalityStart = data.manyLabel || "n";
-      cardinalityEnd = "1";
+      startType = "many";
+      endType = "one";
       break;
     case t(Cardinality.ONE_TO_MANY):
     case Cardinality.ONE_TO_MANY:
-      cardinalityStart = "1";
-      cardinalityEnd = data.manyLabel || "n";
+      startType = "one";
+      endType = "many";
       break;
     case t(Cardinality.ONE_TO_ONE):
     case Cardinality.ONE_TO_ONE:
-      cardinalityStart = "1";
-      cardinalityEnd = "1";
+      startType = "one";
+      endType = "one";
       break;
     default:
       break;
   }
 
+  // For popover display
+  const cardinalityStart = startType === "many" ? (data.manyLabel || "n") : "1";
+  const cardinalityEnd = endType === "many" ? (data.manyLabel || "n") : "1";
+
   let cardinalityStartX = 0;
   let cardinalityEndX = 0;
   let cardinalityStartY = 0;
   let cardinalityEndY = 0;
+  let angleStart = 0;
+  let angleEnd = 0;
 
-  const cardinalityOffset = 28;
+  // Dynamic offsets: Crow's foot touches table (0), Key sits on line (32)
+  const startOffset = startType === "many" ? 0 : 32;
+  const endOffset = endType === "many" ? 0 : 32;
 
   if (pathRef.current) {
     const pathLength = pathRef.current.getTotalLength();
 
-    const point1 = pathRef.current.getPointAtLength(cardinalityOffset);
-    cardinalityStartX = point1.x;
-    cardinalityStartY = point1.y;
-    const point2 = pathRef.current.getPointAtLength(
-      pathLength - cardinalityOffset,
-    );
-    cardinalityEndX = point2.x;
-    cardinalityEndY = point2.y;
+    const p1 = pathRef.current.getPointAtLength(startOffset);
+    const p1_next = pathRef.current.getPointAtLength(startOffset + 2);
+    
+    angleStart = Math.atan2(p1.y - p1_next.y, p1.x - p1_next.x) * (180 / Math.PI);
+    
+    cardinalityStartX = p1.x;
+    cardinalityStartY = p1.y;
+
+    const p2 = pathRef.current.getPointAtLength(pathLength - endOffset);
+    const p2_prev = pathRef.current.getPointAtLength(pathLength - endOffset - 2);
+    
+    angleEnd = Math.atan2(p2.y - p2_prev.y, p2.x - p2_prev.x) * (180 / Math.PI);
+
+    cardinalityEndX = p2.x;
+    cardinalityEndY = p2.y;
   }
 
   const edit = () => {
@@ -307,15 +322,17 @@ export default function Relationship({ data }) {
           {/* Relationship name label removed as per request */}
           {pathRef.current && settings.showCardinality && (
             <>
-              <CardinalityLabel
+              <CardinalitySymbol
                 x={cardinalityStartX}
                 y={cardinalityStartY}
-                text={cardinalityStart}
+                type={startType}
+                angle={angleStart}
               />
-              <CardinalityLabel
+              <CardinalitySymbol
                 x={cardinalityEndX}
                 y={cardinalityEndY}
-                text={cardinalityEnd}
+                type={endType}
+                angle={angleEnd}
               />
             </>
           )}
@@ -346,40 +363,37 @@ export default function Relationship({ data }) {
   );
 }
 
-function CardinalityLabel({ x, y, text, r = 12, padding = 14 }) {
-  const [textWidth, setTextWidth] = useState(0);
-  const textRef = useRef(null);
+function CardinalitySymbol({ x, y, type, angle, color = "grey" }) {
+  if (type === "one") {
+    return (
+      <g transform={`translate(${x}, ${y})`}>
+        <rect
+          x="-14"
+          y="-14"
+          width="28"
+          height="28"
+          rx="6"
+          fill="white"
+          stroke="none"
+          opacity="0.9"
+        />
+        <g transform="translate(-12, -12)">
+          <KeyFilled style={{ fontSize: "24px", color: "#d4b106" }} />
+        </g>
+      </g>
+    );
+  }
 
-  useEffect(() => {
-    if (textRef.current) {
-      const bbox = textRef.current.getBBox();
-      setTextWidth(bbox.width);
-    }
-  }, [text]);
-
+  // Crow's foot
+  // Drawn in negative X direction to point away from the table (since +X is 'into' table)
   return (
-    <g>
-      <rect
-        x={x - textWidth / 2 - padding / 2}
-        y={y - r}
-        rx={r}
-        ry={r}
-        width={textWidth + padding}
-        height={r * 2}
-        fill="grey"
-        className="group-hover:fill-sky-600"
+    <g transform={`translate(${x}, ${y}) rotate(${angle})`}>
+      <path
+        d="M 0 -12 L -16 0 L 0 12 M -16 0 L 0 0"
+        stroke={color}
+        strokeWidth="2"
+        fill="none"
       />
-      <text
-        ref={textRef}
-        x={x}
-        y={y}
-        fill="white"
-        strokeWidth="0.5"
-        textAnchor="middle"
-        alignmentBaseline="middle"
-      >
-        {text}
-      </text>
     </g>
   );
 }
