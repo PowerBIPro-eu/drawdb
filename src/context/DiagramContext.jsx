@@ -117,20 +117,29 @@ export default function DiagramContextProvider({ children }) {
 
   const updateTables = (updates, addToHistory = true) => {
     if (addToHistory) {
-      const undoData = updates.map((u) => {
+      const elements = updates.map((u) => {
         const table = tables.find((t) => t.id === u.id);
-        return { id: u.id, x: table.x, y: table.y };
+        const undoEntry = {};
+        Object.keys(u).forEach((key) => {
+          if (key !== "id") {
+            undoEntry[key] = table[key];
+          }
+        });
+
+        return {
+          type: ObjectType.TABLE,
+          id: u.id,
+          undo: undoEntry,
+          redo: u,
+        };
       });
 
       setUndoStack((prev) => [
         ...prev,
         {
-          action: Action.EDIT,
-          element: ObjectType.TABLE,
-          component: "bulk_move",
-          undo: undoData,
-          redo: updates,
-          message: t("move_tables"),
+          bulk: true,
+          elements: elements,
+          message: t("bulk_update"),
         },
       ]);
       setRedoStack([]);
@@ -140,7 +149,7 @@ export default function DiagramContextProvider({ children }) {
       prev.map((t) => {
         const update = updates.find((u) => u.id === t.id);
         return update ? { ...t, ...update } : t;
-      })
+      }),
     );
   };
 

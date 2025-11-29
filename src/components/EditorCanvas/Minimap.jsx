@@ -1,5 +1,5 @@
 import { useMemo, useRef } from "react";
-import { useDiagram, useAreas, useNotes, useCanvas, useTransform, useSettings } from "../../hooks";
+import { useDiagram, useAreas, useNotes, useCanvas, useTransform, useSettings, useFullscreen } from "../../hooks";
 import { getTableHeight } from "../../utils/utils";
 import {
   tableFieldHeight,
@@ -16,6 +16,7 @@ export default function Minimap() {
   const { canvas: { viewBox } } = useCanvas();
   const { setTransform } = useTransform();
   const { settings } = useSettings();
+  const fullscreen = useFullscreen();
   const svgRef = useRef(null);
 
   const rowHeight = settings.showDetailedView
@@ -83,7 +84,7 @@ export default function Minimap() {
   if (tables.length === 0 && areas.length === 0 && notes.length === 0) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 w-[240px] h-[160px] bg-white/90 dark:bg-zinc-800/90 border border-zinc-300 dark:border-zinc-600 rounded-lg shadow-lg overflow-hidden z-50">
+    <div className={`fixed bottom-4 ${fullscreen ? "left-4" : "right-4"} w-[240px] h-[160px] bg-white/90 dark:bg-zinc-800/90 border border-zinc-300 dark:border-zinc-600 rounded-lg shadow-lg overflow-hidden z-50`}>
       <svg
         ref={svgRef}
         viewBox={`${bounds.x} ${bounds.y} ${bounds.width} ${bounds.height}`}

@@ -112,6 +112,7 @@ export default function ControlPanel({
     setTables,
     addTable,
     updateTable,
+    updateTables,
     deleteField,
     deleteTable,
     updateField,
@@ -1424,6 +1425,11 @@ export default function ControlPanel({
       reset_view: {
         function: resetView,
         shortcut: "Enter/Return",
+      },
+      collapse_all: {
+        function: () => {
+          updateTables(tables.map((t) => ({ id: t.id, collapsed: true })));
+        },
       },
       show_datatype: {
         state: settings.showDataTypes ? (
