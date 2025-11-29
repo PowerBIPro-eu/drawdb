@@ -7,6 +7,7 @@ import {
   tableFieldHeightDetailed,
   tableHeaderHeight,
   tableHeaderHeightDetailed,
+  ViewMode,
 } from "../../data/constants";
 import { calcPath } from "../../utils/calcPath";
 import { useDiagram, useSettings, useLayout, useSelect } from "../../hooks";
@@ -24,12 +25,18 @@ export default function Relationship({ data }) {
   const { selectedElement, setSelectedElement } = useSelect();
   const { t } = useTranslation();
 
-  const rowHeight = settings.showDetailedView
-    ? tableFieldHeightDetailed
-    : tableFieldHeight;
-  const headerHeight = settings.showDetailedView
-    ? tableHeaderHeightDetailed
-    : tableHeaderHeight;
+  const rowHeight =
+    settings.viewMode === ViewMode.DETAILED
+      ? tableFieldHeightDetailed
+      : tableFieldHeight;
+  const headerHeight =
+    settings.viewMode === ViewMode.DETAILED
+      ? tableHeaderHeightDetailed
+      : settings.viewMode === ViewMode.CONCEPTUAL
+      ? tableHeaderHeight * 3
+      : tableHeaderHeight;
+
+  const isConceptual = settings.viewMode === ViewMode.CONCEPTUAL;
 
   const pathValues = useMemo(() => {
     const startTable = tables.find((t) => t.id === data.startTableId);
@@ -45,12 +52,16 @@ export default function Relationship({ data }) {
       return null;
 
     return {
-      startFieldIndex: getVisibleFields(startTable, relationships).findIndex(
-        (f) => f.id === data.startFieldId,
-      ),
-      endFieldIndex: getVisibleFields(endTable, relationships).findIndex(
-        (f) => f.id === data.endFieldId,
-      ),
+      startFieldIndex: isConceptual
+        ? -1
+        : getVisibleFields(startTable, relationships).findIndex(
+            (f) => f.id === data.startFieldId,
+          ),
+      endFieldIndex: isConceptual
+        ? -1
+        : getVisibleFields(endTable, relationships).findIndex(
+            (f) => f.id === data.endFieldId,
+          ),
       startTable: {
         x: startTable.x,
         y: startTable.y,
@@ -62,7 +73,7 @@ export default function Relationship({ data }) {
         w: endTable.width ?? settings.tableWidth,
       },
     };
-  }, [tables, data, settings.tableWidth, relationships]);
+  }, [tables, data, settings.tableWidth, relationships, isConceptual]);
 
   const pathRef = useRef();
 

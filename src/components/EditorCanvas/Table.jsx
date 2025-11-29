@@ -8,6 +8,7 @@ import {
   tableHeaderHeightDetailed,
   tableColorStripHeight,
   Cardinality,
+  ViewMode,
 } from "../../data/constants";
 import {
   IconEdit,
@@ -70,21 +71,25 @@ export default function Table({
   );
 
   const width = tableData.width ?? settings.tableWidth;
-  const rowHeight = settings.showDetailedView
-    ? tableFieldHeightDetailed
-    : tableFieldHeight;
-  const headerHeight = settings.showDetailedView
-    ? tableHeaderHeightDetailed
-    : tableHeaderHeight;
+  const rowHeight =
+    settings.viewMode === ViewMode.DETAILED
+      ? tableFieldHeightDetailed
+      : tableFieldHeight;
+  const headerHeight =
+    settings.viewMode === ViewMode.DETAILED
+      ? tableHeaderHeightDetailed
+      : settings.viewMode === ViewMode.CONCEPTUAL
+      ? tableHeaderHeight * 3
+      : tableHeaderHeight;
 
-  const height = getTableHeight(
-    tableData,
-    relationships,
-    rowHeight,
-    headerHeight,
-  );
+  const isConceptual = settings.viewMode === ViewMode.CONCEPTUAL;
+  const visibleFields = isConceptual
+    ? []
+    : getVisibleFields(tableData, relationships);
 
-  const visibleFields = getVisibleFields(tableData, relationships);
+  const height = isConceptual
+    ? headerHeight + tableColorStripHeight + 4
+    : getTableHeight(tableData, relationships, rowHeight, headerHeight);
 
   const isSelected = useMemo(() => {
     return (
@@ -290,7 +295,8 @@ export default function Table({
                     <People24Regular className="text-zinc-500" />
                   )}
                   <div className="flex flex-col overflow-hidden">
-                    {settings.showDetailedView && tableData.displayName ? (
+                    {settings.viewMode === ViewMode.DETAILED &&
+                    tableData.displayName ? (
                       <>
                         <span className="overflow-hidden text-ellipsis whitespace-nowrap">
                           {tableData.displayName}
@@ -299,6 +305,14 @@ export default function Table({
                           {tableData.name}
                         </span>
                       </>
+                    ) : settings.viewMode === ViewMode.BUSINESS ? (
+                      <span className="overflow-hidden text-ellipsis whitespace-nowrap">
+                        {tableData.displayName || tableData.name}
+                      </span>
+                    ) : settings.viewMode === ViewMode.CONCEPTUAL ? (
+                      <span className="whitespace-normal break-words text-3xl font-bold text-center w-full px-2 leading-tight">
+                        {tableData.displayName || tableData.name}
+                      </span>
                     ) : (
                       <span className="overflow-hidden text-ellipsis whitespace-nowrap">
                         {tableData.name}
@@ -767,7 +781,8 @@ export default function Table({
             }}
           />
           <div className="flex flex-col overflow-hidden">
-            {settings.showDetailedView && fieldData.displayName ? (
+            {settings.viewMode === ViewMode.DETAILED &&
+            fieldData.displayName ? (
               <>
                 <span className="overflow-hidden text-ellipsis whitespace-nowrap">
                   {fieldData.displayName}
@@ -776,6 +791,10 @@ export default function Table({
                   {fieldData.name}
                 </span>
               </>
+            ) : settings.viewMode === ViewMode.BUSINESS ? (
+              <span className="overflow-hidden text-ellipsis whitespace-nowrap">
+                {fieldData.displayName || fieldData.name}
+              </span>
             ) : (
               <span className="overflow-hidden text-ellipsis whitespace-nowrap">
                 {fieldData.name}

@@ -115,6 +115,13 @@ export const DB = {
   GENERIC: "generic",
 };
 
+export const ViewMode = {
+  TECHNICAL: "technical",
+  DETAILED: "detailed",
+  BUSINESS: "business",
+  CONCEPTUAL: "conceptual",
+};
+
 export const IMPORT_FROM = {
   JSON: 0,
   DBML: 1,

@@ -23,18 +23,24 @@ export function calcPath(r, tableWidth = 200, zoom = 1, rowHeight = tableFieldHe
 
   let x1 = r.startTable.x;
   let y1 =
-    r.startTable.y +
-    r.startFieldIndex * rowHeight +
-    headerHeight +
-    tableColorStripHeight + 2 +
-    rowHeight / 2;
+    r.startFieldIndex === -1
+      ? r.startTable.y + headerHeight / 2
+      : r.startTable.y +
+        r.startFieldIndex * rowHeight +
+        headerHeight +
+        tableColorStripHeight +
+        2 +
+        rowHeight / 2;
   let x2 = r.endTable.x;
   let y2 =
-    r.endTable.y +
-    r.endFieldIndex * rowHeight +
-    headerHeight +
-    tableColorStripHeight + 2 +
-    rowHeight / 2;
+    r.endFieldIndex === -1
+      ? r.endTable.y + headerHeight / 2
+      : r.endTable.y +
+        r.endFieldIndex * rowHeight +
+        headerHeight +
+        tableColorStripHeight +
+        2 +
+        rowHeight / 2;
 
   let radius = 10 * zoom;
   const midX = x1 + startWidth <= x2 ? (x1 + startWidth + x2) / 2 : (x1 + x2 + endWidth) / 2;

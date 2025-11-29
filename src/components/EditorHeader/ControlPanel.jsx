@@ -44,6 +44,7 @@ import {
   IMPORT_FROM,
   noteWidth,
   pngExportPixelRatio,
+  ViewMode,
 } from "../../data/constants";
 import jsPDF from "jspdf";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -1484,17 +1485,34 @@ export default function ControlPanel({
             showRelationshipLabels: !prev.showRelationshipLabels,
           })),
       },
-      show_detailed_view: {
-        state: settings.showDetailedView ? (
-          <i className="bi bi-toggle-on" />
-        ) : (
-          <i className="bi bi-toggle-off" />
-        ),
-        function: () =>
-          setSettings((prev) => ({
-            ...prev,
-            showDetailedView: !prev.showDetailedView,
-          })),
+      view_mode: {
+        children: [
+          {
+            name: t("technical_mode"),
+            function: () =>
+              setSettings((prev) => ({ ...prev, viewMode: ViewMode.TECHNICAL })),
+            label: settings.viewMode === ViewMode.TECHNICAL ? "✓" : "",
+          },
+          {
+            name: t("detailed_mode"),
+            function: () =>
+              setSettings((prev) => ({ ...prev, viewMode: ViewMode.DETAILED })),
+            label: settings.viewMode === ViewMode.DETAILED ? "✓" : "",
+          },
+          {
+            name: t("business_mode"),
+            function: () =>
+              setSettings((prev) => ({ ...prev, viewMode: ViewMode.BUSINESS })),
+            label: settings.viewMode === ViewMode.BUSINESS ? "✓" : "",
+          },
+          {
+            name: t("conceptual_mode"),
+            function: () =>
+              setSettings((prev) => ({ ...prev, viewMode: ViewMode.CONCEPTUAL })),
+            label: settings.viewMode === ViewMode.CONCEPTUAL ? "✓" : "",
+          },
+        ],
+        function: () => {},
       },
       show_debug_coordinates: {
         state: settings.showDebugCoordinates ? (
@@ -1862,6 +1880,69 @@ export default function ControlPanel({
               <i className="fa-solid fa-circle-half-stroke" />
             </button>
           </Tooltip>
+          <Divider layout="vertical" margin="8px" />
+          <div className="flex bg-[rgba(var(--semi-grey-2),0.5)] rounded p-1 gap-1">
+            <button
+              className={`px-2 py-1 rounded text-xs font-semibold transition-colors ${
+                settings.viewMode === ViewMode.TECHNICAL
+                  ? "bg-[var(--semi-color-bg-0)] shadow text-[var(--semi-color-text-0)]"
+                  : "hover:bg-[rgba(var(--semi-grey-3),0.5)] text-[var(--semi-color-text-2)]"
+              }`}
+              onClick={() =>
+                setSettings((prev) => ({
+                  ...prev,
+                  viewMode: ViewMode.TECHNICAL,
+                }))
+              }
+            >
+              {t("technical_mode")}
+            </button>
+            <button
+              className={`px-2 py-1 rounded text-xs font-semibold transition-colors ${
+                settings.viewMode === ViewMode.DETAILED
+                  ? "bg-[var(--semi-color-bg-0)] shadow text-[var(--semi-color-text-0)]"
+                  : "hover:bg-[rgba(var(--semi-grey-3),0.5)] text-[var(--semi-color-text-2)]"
+              }`}
+              onClick={() =>
+                setSettings((prev) => ({
+                  ...prev,
+                  viewMode: ViewMode.DETAILED,
+                }))
+              }
+            >
+              {t("detailed_mode")}
+            </button>
+            <button
+              className={`px-2 py-1 rounded text-xs font-semibold transition-colors ${
+                settings.viewMode === ViewMode.BUSINESS
+                  ? "bg-[var(--semi-color-bg-0)] shadow text-[var(--semi-color-text-0)]"
+                  : "hover:bg-[rgba(var(--semi-grey-3),0.5)] text-[var(--semi-color-text-2)]"
+              }`}
+              onClick={() =>
+                setSettings((prev) => ({
+                  ...prev,
+                  viewMode: ViewMode.BUSINESS,
+                }))
+              }
+            >
+              {t("business_mode")}
+            </button>
+            <button
+              className={`px-2 py-1 rounded text-xs font-semibold transition-colors ${
+                settings.viewMode === ViewMode.CONCEPTUAL
+                  ? "bg-[var(--semi-color-bg-0)] shadow text-[var(--semi-color-text-0)]"
+                  : "hover:bg-[rgba(var(--semi-grey-3),0.5)] text-[var(--semi-color-text-2)]"
+              }`}
+              onClick={() =>
+                setSettings((prev) => ({
+                  ...prev,
+                  viewMode: ViewMode.CONCEPTUAL,
+                }))
+              }
+            >
+              {t("conceptual_mode")}
+            </button>
+          </div>
         </div>
         <button
           onClick={() => invertLayout("header")}

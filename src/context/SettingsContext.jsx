@@ -13,7 +13,7 @@ const defaultSettings = {
   showRelationshipLabels: true,
   tableWidth: tableWidth,
   showDebugCoordinates: false,
-  showDetailedView: false,
+  viewMode: "technical",
   showMinimap: true,
 };
 
