@@ -8,7 +8,6 @@ import {
   Select,
   RadioGroup,
   Radio,
-  List,
   Tag,
 } from "@douyinfe/semi-ui";
 import ColorPicker from "../ColorPicker";
@@ -18,6 +17,7 @@ import {
   useLayout,
   useSaveState,
   useUndoRedo,
+  useSettings,
 } from "../../../hooks";
 import { Action, ObjectType, State, DB, Cardinality } from "../../../data/constants";
 import TableField from "./TableField";
@@ -31,7 +31,9 @@ export default function TableInfo({ data }) {
   const { t } = useTranslation();
   const [indexActiveKey, setIndexActiveKey] = useState("");
   const [relationshipActiveKey, setRelationshipActiveKey] = useState("");
+  const [fieldActiveKey, setFieldActiveKey] = useState("1");
   const { layout } = useLayout();
+  const { settings } = useSettings();
   const { deleteTable, updateTable, setTables } = useDiagram();
   const { setUndoStack, setRedoStack } = useUndoRedo();
   const { setSaveState } = useSaveState();
@@ -103,6 +105,34 @@ export default function TableInfo({ data }) {
       return isStart ? "N:1" : "1:N";
     return "";
   };
+
+  const getGroupTitle = (label) => {
+    if (label === "N:1") return "Lookups";
+    if (label === "1:N") return "Related";
+    if (label === "Recursive") return "Recursive";
+    return label;
+  };
+
+  const groupedRelationships = (() => {
+    const rels = relationships.filter(
+      (r) => r.startTableId === data.id || r.endTableId === data.id,
+    );
+
+    const groups = {};
+    rels.forEach((r) => {
+      let label;
+      if (r.startTableId === r.endTableId) {
+        label = "Recursive";
+      } else {
+        label = getCardinalityLabel(r, data.id);
+      }
+
+      if (!groups[label]) groups[label] = [];
+      groups[label].push(r);
+    });
+
+    return groups;
+  })();
 
   return (
     <div>
@@ -202,26 +232,61 @@ export default function TableInfo({ data }) {
         </RadioGroup>
       </div>
 
-      <SortableList
-        items={data.fields}
-        keyPrefix={`table-${data.id}`}
-        onChange={(newFields) =>
-          setTables((prev) =>
-            prev.map((t) =>
-              t.id === data.id ? { ...t, fields: newFields } : t,
-            ),
-          )
-        }
-        afterChange={() => setSaveState(State.SAVING)}
-        renderItem={(item, i) => (
-          <TableField
-            data={item}
-            tid={data.id}
-            index={i}
-            inherited={inheritedFieldNames.includes(item.name)}
-          />
-        )}
-      />
+      <Card
+        bodyStyle={{ padding: "4px" }}
+        style={{ marginTop: "12px", marginBottom: "12px" }}
+        headerLine={false}
+      >
+        <Collapse
+          activeKey={fieldActiveKey}
+          keepDOM={false}
+          lazyRender
+          onChange={(itemKey) => setFieldActiveKey(itemKey)}
+          accordion
+        >
+          <Collapse.Panel
+            header={
+              <div className="flex items-center gap-2">
+                <span>{t("fields")}</span>
+                <Tag
+                  size="small"
+                  type="solid"
+                  style={{
+                    borderRadius: "10px",
+                    backgroundColor:
+                      settings.mode === "light" ? "#e6e8ea" : "#3f3f46",
+                    color: settings.mode === "light" ? "#1f2937" : "#f3f4f6",
+                  }}
+                >
+                  {data.fields.length}
+                </Tag>
+              </div>
+            }
+            itemKey="1"
+          >
+            <SortableList
+              items={data.fields}
+              keyPrefix={`table-${data.id}`}
+              onChange={(newFields) =>
+                setTables((prev) =>
+                  prev.map((t) =>
+                    t.id === data.id ? { ...t, fields: newFields } : t,
+                  ),
+                )
+              }
+              afterChange={() => setSaveState(State.SAVING)}
+              renderItem={(item, i) => (
+                <TableField
+                  data={item}
+                  tid={data.id}
+                  index={i}
+                  inherited={inheritedFieldNames.includes(item.name)}
+                />
+              )}
+            />
+          </Collapse.Panel>
+        </Collapse>
+      </Card>
 
       {tableRelationships.length > 0 && (
         <Card
@@ -236,37 +301,127 @@ export default function TableInfo({ data }) {
             onChange={(itemKey) => setRelationshipActiveKey(itemKey)}
             accordion
           >
-            <Collapse.Panel header={t("relationships")} itemKey="1">
-              <List
-                dataSource={tableRelationships}
-                renderItem={(item) => {
-                  const otherTableId =
-                    item.startTableId === data.id
-                      ? item.endTableId
-                      : item.startTableId;
-                  const otherTable = tables.find((t) => t.id === otherTableId);
-                  const cardLabel = getCardinalityLabel(item, data.id);
-                  return (
-                    <List.Item className="flex justify-between items-center hover:bg-gray-100 p-2 rounded">
-                      <div className="truncate flex items-center gap-2" title={otherTable?.name}>
-                        <span className="font-semibold">{otherTable?.name}</span>
-                        <Tag size="small">{cardLabel}</Tag>
+            <Collapse.Panel
+              header={
+                <div className="flex items-center gap-2">
+                  <span>{t("relationships")}</span>
+                  <Tag
+                    size="small"
+                    type="solid"
+                    style={{
+                      borderRadius: "10px",
+                      backgroundColor:
+                        settings.mode === "light" ? "#e6e8ea" : "#3f3f46",
+                      color: settings.mode === "light" ? "#1f2937" : "#f3f4f6",
+                    }}
+                  >
+                    {tableRelationships.length}
+                  </Tag>
+                </div>
+              }
+              itemKey="1"
+            >
+              <Collapse accordion className="mt-2">
+                {Object.entries(groupedRelationships).map(([label, rels]) => (
+                  <Collapse.Panel
+                    key={label}
+                    header={
+                      <div className="flex items-center gap-2">
+                        <span>{getGroupTitle(label)}</span>
+                        {label !== "Recursive" && (
+                          <span className="text-gray-400 text-sm">
+                            ({label})
+                          </span>
+                        )}
+                        <Tag
+                          size="small"
+                          type="solid"
+                          style={{
+                            borderRadius: "10px",
+                            backgroundColor:
+                              settings.mode === "light" ? "#e6e8ea" : "#3f3f46",
+                            color:
+                              settings.mode === "light" ? "#1f2937" : "#f3f4f6",
+                          }}
+                        >
+                          {rels.length}
+                        </Tag>
                       </div>
-                      <Button
-                        icon={
-                          item.hidden ? <IconEyeClosed /> : <IconEyeOpened />
+                    }
+                    itemKey={label}
+                  >
+                    {rels.map((r) => {
+                      const otherTableId =
+                        r.startTableId === data.id
+                          ? r.endTableId
+                          : r.startTableId;
+                      const otherTable = tables.find(
+                        (t) => t.id === otherTableId,
+                      );
+
+                      const isLookup = label === "N:1";
+                      const isRecursive = label === "Recursive";
+
+                      let localFieldId =
+                        r.startTableId === data.id
+                          ? r.startFieldId
+                          : r.endFieldId;
+
+                      if (isRecursive) {
+                        const startField = data.fields.find(
+                          (f) => f.id === r.startFieldId,
+                        );
+                        if (startField?.primary) {
+                          localFieldId = r.endFieldId;
+                        } else {
+                          localFieldId = r.startFieldId;
                         }
-                        type="tertiary"
-                        theme="borderless"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleRelationshipVisibility(item.id);
-                        }}
-                      />
-                    </List.Item>
-                  );
-                }}
-              />
+                      }
+
+                      const localField = data.fields.find(
+                        (f) => f.id === localFieldId,
+                      );
+
+                      return (
+                        <div
+                          key={r.id}
+                          className={`flex justify-between items-center py-2 px-3 border-b ${
+                            settings.mode === "light"
+                              ? "border-gray-200 hover:bg-gray-50"
+                              : "border-zinc-700 hover:bg-zinc-800"
+                          } cursor-pointer`}
+                        >
+                          <div
+                            className="flex flex-col overflow-hidden"
+                            title={otherTable?.name}
+                          >
+                            <span className="truncate font-semibold text-sm">
+                              {otherTable?.displayName || otherTable?.name}
+                            </span>
+                            {(isLookup || isRecursive) && localField && (
+                              <span className="text-xs text-gray-500 truncate">
+                                via {localField.name}
+                              </span>
+                            )}
+                          </div>
+                          <Button
+                            icon={
+                              r.hidden ? <IconEyeClosed /> : <IconEyeOpened />
+                            }
+                            type="tertiary"
+                            theme="borderless"
+                            size="small"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleRelationshipVisibility(r.id);
+                            }}
+                          />
+                        </div>
+                      );
+                    })}
+                  </Collapse.Panel>
+                ))}
+              </Collapse>
             </Collapse.Panel>
           </Collapse>
         </Card>

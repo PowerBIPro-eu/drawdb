@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Collapse, Button } from "@douyinfe/semi-ui";
 import {
   IconEyeOpened,
@@ -37,11 +38,20 @@ export default function TablesTab() {
   const { t } = useTranslation();
   const { layout } = useLayout();
   const { setSaveState } = useSaveState();
+  const [searchValue, setSearchValue] = useState("");
+
+  const filteredTables = tables.filter((t) => {
+    const lowerSearch = searchValue.toLowerCase();
+    return (
+      t.name.toLowerCase().includes(lowerSearch) ||
+      (t.displayName && t.displayName.toLowerCase().includes(lowerSearch))
+    );
+  });
 
   return (
     <>
       <div className="flex gap-2">
-        <SearchBar tables={tables} />
+        <SearchBar searchValue={searchValue} setSearchValue={setSearchValue} />
         <div>
           <Button
             block
@@ -74,20 +84,32 @@ export default function TablesTab() {
           }
           accordion
         >
-          <SortableList
-            keyPrefix="tables-tab"
-            items={tables}
-            onChange={(newTables) => setTables(newTables)}
-            afterChange={() => setSaveState(State.SAVING)}
-            renderItem={(item) => <TableListItem table={item} />}
-          />
+          {searchValue === "" ? (
+            <SortableList
+              keyPrefix="tables-tab"
+              items={tables}
+              onChange={(newTables) => setTables(newTables)}
+              afterChange={() => setSaveState(State.SAVING)}
+              renderItem={(item) => <TableListItem table={item} />}
+            />
+          ) : (
+            <div>
+              {filteredTables.map((item) => (
+                <TableListItem
+                  key={item.id}
+                  table={item}
+                  showDragHandle={false}
+                />
+              ))}
+            </div>
+          )}
         </Collapse>
       )}
     </>
   );
 }
 
-function TableListItem({ table }) {
+function TableListItem({ table, showDragHandle = true }) {
   const { layout } = useLayout();
   const { updateTable, relationships } = useDiagram();
   const { setUndoStack, setRedoStack } = useUndoRedo();
@@ -154,7 +176,9 @@ function TableListItem({ table }) {
         header={
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center gap-2 flex-1">
-              <DragHandle readOnly={layout.readOnly} id={table.id} />
+              {showDragHandle && (
+                <DragHandle readOnly={layout.readOnly} id={table.id} />
+              )}
               <div className="overflow-hidden text-ellipsis whitespace-nowrap">
                 {table.name}
               </div>
