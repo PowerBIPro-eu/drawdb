@@ -15,6 +15,7 @@ const defaultSettings = {
   showDebugCoordinates: false,
   viewMode: "technical",
   showMinimap: true,
+  baseFontSize: 14,
 };
 
 export const SettingsContext = createContext(defaultSettings);
@@ -23,9 +24,9 @@ export default function SettingsContextProvider({ children }) {
   const [settings, setSettings] = useState(defaultSettings);
 
   useEffect(() => {
-    const settings = localStorage.getItem("settings");
-    if (settings) {
-      setSettings(JSON.parse(settings));
+    const storedSettings = localStorage.getItem("settings");
+    if (storedSettings) {
+      setSettings((prev) => ({ ...prev, ...JSON.parse(storedSettings) }));
     }
   }, []);
 

@@ -1943,6 +1943,20 @@ export default function ControlPanel({
               {t("conceptual_mode")}
             </button>
           </div>
+          <Divider layout="vertical" margin="8px" />
+          <div className="flex items-center">
+            <InputNumber
+              min={8}
+              max={48}
+              value={settings.baseFontSize}
+              onChange={(v) =>
+                setSettings((prev) => ({ ...prev, baseFontSize: v }))
+              }
+              style={{ width: 64 }}
+              size="small"
+              suffix={<span className="text-xs">px</span>}
+            />
+          </div>
         </div>
         <button
           onClick={() => invertLayout("header")}

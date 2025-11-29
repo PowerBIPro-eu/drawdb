@@ -275,7 +275,7 @@ export default function Table({
                    ? "bg-zinc-100 text-zinc-800"
                    : "bg-zinc-800 text-zinc-200"
                } ${isSelected ? "border-solid border-blue-500" : borderColor}`}
-            style={{ direction: "ltr" }}
+            style={{ direction: "ltr", fontSize: `${settings.baseFontSize}px` }}
           >
             <div
               className="h-[10px] w-full rounded-t-md"
@@ -301,7 +301,7 @@ export default function Table({
                         <span className="overflow-hidden text-ellipsis whitespace-nowrap">
                           {tableData.displayName}
                         </span>
-                        <span className="text-xs text-gray-500 overflow-hidden text-ellipsis whitespace-nowrap font-normal">
+                        <span className="text-[0.75em] text-gray-500 overflow-hidden text-ellipsis whitespace-nowrap font-normal">
                           {tableData.name}
                         </span>
                       </>
@@ -310,7 +310,7 @@ export default function Table({
                         {tableData.displayName || tableData.name}
                       </span>
                     ) : settings.viewMode === ViewMode.CONCEPTUAL ? (
-                      <span className="whitespace-normal break-words text-3xl font-bold text-center w-full px-2 leading-tight">
+                      <span className="whitespace-normal break-words text-[1.875em] font-bold text-center w-full px-2 leading-tight">
                         {tableData.displayName || tableData.name}
                       </span>
                     ) : (
@@ -506,12 +506,12 @@ export default function Table({
                                             className="flex flex-col overflow-hidden"
                                             title={otherTable?.name}
                                           >
-                                            <span className="truncate font-semibold text-sm">
+                                            <span className="truncate font-semibold text-[0.875em]">
                                               {otherTable?.displayName ||
                                                 otherTable?.name}
                                             </span>
                                             {(isLookup || isRecursive) && localField && (
-                                              <span className="text-xs text-gray-500 truncate">
+                                              <span className="text-[0.75em] text-gray-500 truncate">
                                                 via {localField.name}
                                               </span>
                                             )}
@@ -787,7 +787,7 @@ export default function Table({
                 <span className="overflow-hidden text-ellipsis whitespace-nowrap">
                   {fieldData.displayName}
                 </span>
-                <span className="text-xs text-gray-500 overflow-hidden text-ellipsis whitespace-nowrap">
+                <span className="text-[0.75em] text-gray-500 overflow-hidden text-ellipsis whitespace-nowrap">
                   {fieldData.name}
                 </span>
               </>
