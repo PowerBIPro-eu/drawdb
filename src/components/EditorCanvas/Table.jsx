@@ -173,9 +173,9 @@ export default function Table({
     }
   };
 
-  const handleResize = () => {
-    setTableResize({ id: tableData.id, dir: "right" });
-    setTableInitDimensions({ width: width });
+  const handleResize = (dir) => {
+    setTableResize({ id: tableData.id, dir });
+    setTableInitDimensions({ width: width, x: tableData.x });
   };
 
   const toggleRelationshipVisibility = (id) => {
@@ -681,16 +681,28 @@ export default function Table({
           </div>
         </foreignObject>
         {isHovered && (
-          <circle
-            cx={tableData.x + width}
-            cy={tableData.y + height / 2}
-            r={6}
-            fill={settings.mode === "light" ? "white" : "rgb(28, 31, 35)"}
-            stroke="#5891db"
-            strokeWidth={2}
-            cursor="ew-resize"
-            onPointerDown={(e) => e.isPrimary && handleResize()}
-          />
+          <>
+            <circle
+              cx={tableData.x}
+              cy={tableData.y + height / 2}
+              r={6}
+              fill={settings.mode === "light" ? "white" : "rgb(28, 31, 35)"}
+              stroke="#5891db"
+              strokeWidth={2}
+              cursor="ew-resize"
+              onPointerDown={(e) => e.isPrimary && handleResize("left")}
+            />
+            <circle
+              cx={tableData.x + width}
+              cy={tableData.y + height / 2}
+              r={6}
+              fill={settings.mode === "light" ? "white" : "rgb(28, 31, 35)"}
+              stroke="#5891db"
+              strokeWidth={2}
+              cursor="ew-resize"
+              onPointerDown={(e) => e.isPrimary && handleResize("right")}
+            />
+          </>
         )}
       </g>
       <SideSheet

@@ -107,6 +107,7 @@ export default function Canvas() {
   const [tableResize, setTableResize] = useState({ id: -1, dir: "none" });
   const [tableInitDimensions, setTableInitDimensions] = useState({
     width: 0,
+    x: 0,
   });
   const [bulkSelectRect, setBulkSelectRect] = useState({
     x1: 0,
@@ -367,13 +368,22 @@ export default function Canvas() {
       if (tableResize.dir === "none") return;
       setPanning((old) => ({ ...old, isPanning: false }));
       const { x } = coordinatesAfterSnappingToGrid(pointer.spaces.diagram);
-      const table = tables.find((t) => t.id === tableResize.id);
-      if (!table) return;
 
-      let newWidth = x - table.x;
-      if (newWidth < minAreaSize) newWidth = minAreaSize;
+      if (tableResize.dir === "right") {
+        let newWidth = x - tableInitDimensions.x;
+        if (newWidth < minAreaSize) newWidth = minAreaSize;
+        updateTable(tableResize.id, { width: newWidth });
+      } else if (tableResize.dir === "left") {
+        const rightEdge = tableInitDimensions.x + tableInitDimensions.width;
+        let newWidth = rightEdge - x;
+        let newX = x;
 
-      updateTable(tableResize.id, { width: newWidth });
+        if (newWidth < minAreaSize) {
+          newWidth = minAreaSize;
+          newX = rightEdge - minAreaSize;
+        }
+        updateTable(tableResize.id, { x: newX, width: newWidth });
+      }
       return;
     }
 
@@ -504,7 +514,11 @@ export default function Canvas() {
 
   const didTableResize = (id) => {
     const table = tables.find((t) => t.id === id);
-    return table && table.width !== tableInitDimensions.width;
+    return (
+      table &&
+      (table.width !== tableInitDimensions.width ||
+        table.x !== tableInitDimensions.x)
+    );
   };
 
   const didPan = () =>
@@ -575,8 +589,8 @@ export default function Canvas() {
           action: Action.EDIT,
           element: ObjectType.TABLE,
           tid: tableResize.id,
-          undo: { width: tableInitDimensions.width },
-          redo: { width: table.width },
+          undo: { width: tableInitDimensions.width, x: tableInitDimensions.x },
+          redo: { width: table.width, x: table.x },
           message: t("edit_table", {
             tableName: table.name,
             extra: "[resize]",
@@ -586,7 +600,7 @@ export default function Canvas() {
       setRedoStack([]);
     }
     setTableResize({ id: -1, dir: "none" });
-    setTableInitDimensions({ width: 0 });
+    setTableInitDimensions({ width: 0, x: 0 });
 
     if (areaResize.id !== -1 && didResize(areaResize.id)) {
       setUndoStack((prev) => [
