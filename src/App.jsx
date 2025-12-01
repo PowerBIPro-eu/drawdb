@@ -10,7 +10,7 @@ import NotFound from "./pages/NotFound";
 export default function App() {
   return (
     <SettingsContextProvider>
-      <BrowserRouter>
+      <BrowserRouter basename="/drawdb">
         <RestoreScroll />
         <Routes>
           <Route path="/" element={<LandingPage />} />
